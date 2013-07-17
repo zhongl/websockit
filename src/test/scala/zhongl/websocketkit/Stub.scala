@@ -1,10 +1,10 @@
-package me.zhongl
+package zhongl.websocketkit
 
-import io.netty.handler.codec.http.websocketx.{TextWebSocketFrame, WebSocketFrame}
-import me.zhongl.stub.WebSocketServer
-import me.zhongl.driver.WebSocketClient
+import io.netty.handler.codec.http.websocketx.{ TextWebSocketFrame, WebSocketFrame }
 import java.net.URI
-import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.{ TimeUnit, SynchronousQueue }
+import zhongl.websocketkit.driver.WebSocketClient
+import zhongl.websocketkit.stub.WebSocketServer
 
 object Stub {
   type Handle = PartialFunction[WebSocketFrame, Option[WebSocketFrame]]
@@ -14,7 +14,7 @@ object Stub {
 
   class Procedure(h: Handle) {
 
-    def then(f: Drive => Unit) = {
+    def andThen(f: Drive => Unit) = {
       val server = new WebSocketServer() {
         def receive = h
       }
@@ -29,7 +29,7 @@ object Stub {
 
         def ask(text: String) = {
           send(text)
-          queue.take()
+          queue.poll(3, TimeUnit.SECONDS)
         }
       }
 
@@ -45,6 +45,5 @@ object Stub {
     }
 
   }
-
 
 }

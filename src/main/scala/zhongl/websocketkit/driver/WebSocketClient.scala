@@ -1,4 +1,4 @@
-package me.zhongl.driver
+package zhongl.websocketkit.driver
 
 import java.net.URI
 import io.netty.handler.codec.http.websocketx._
@@ -7,26 +7,24 @@ import io.netty.bootstrap.Bootstrap
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.channel._
 import io.netty.channel.socket.SocketChannel
-import io.netty.handler.codec.http.{FullHttpResponse, HttpHeaders, HttpObjectAggregator, HttpClientCodec}
+import io.netty.handler.codec.http.{ FullHttpResponse, HttpHeaders, HttpObjectAggregator, HttpClientCodec }
 import io.netty.buffer.ByteBuf
 import org.slf4j.LoggerFactory
 
 abstract class WebSocketClient(
-  uri: URI,
-  subprotocol: String = null,
-  allowExtensions: Boolean = false,
-  customHeaders: HttpHeaders = HttpHeaders.EMPTY_HEADERS,
-  maxFramePayloadLength: Int = 4096
-  ) {
+    uri: URI,
+    subprotocol: String = null,
+    allowExtensions: Boolean = false,
+    customHeaders: HttpHeaders = HttpHeaders.EMPTY_HEADERS,
+    maxFramePayloadLength: Int = 4096) {
 
   protected lazy val log = LoggerFactory.getLogger(classOf[WebSocketClient])
 
-  private lazy val group  = new NioEventLoopGroup()
+  private lazy val group = new NioEventLoopGroup()
   private lazy val handle = new Handle
 
-  @volatile protected var online           = false
+  @volatile protected var online = false
   @volatile protected var channel: Channel = _
-
 
   def connect(): Unit = {
 
@@ -78,7 +76,6 @@ abstract class WebSocketClient(
 
   private def checkState(e: => Boolean, m: String) = if (!e) throw new IllegalStateException(m)
 
-
   protected class Handle extends SimpleChannelInboundHandler[AnyRef]() {
 
     @volatile var handshakeFuture: ChannelPromise = _
@@ -100,14 +97,14 @@ abstract class WebSocketClient(
         handshaker.finishHandshake(ctx.channel(), msg.asInstanceOf[FullHttpResponse]);
         log.info("WebSocked client connected.")
         handshakeFuture.setSuccess();
-        return;
+        return ;
       }
 
       msg match {
-        case f: PingWebSocketFrame  => ctx.channel.writeAndFlush(new PongWebSocketFrame(f.content()))
+        case f: PingWebSocketFrame => ctx.channel.writeAndFlush(new PongWebSocketFrame(f.content()))
         case f: CloseWebSocketFrame => close(ctx.channel, f)
-        case f: WebSocketFrame      => receive(f) foreach { ctx.channel().writeAndFlush }
-        case m                      => throw new IllegalStateException("Unknown message: " + m)
+        case f: WebSocketFrame => receive(f) foreach { ctx.channel().writeAndFlush }
+        case m => throw new IllegalStateException("Unknown message: " + m)
       }
     }
 
