@@ -37,7 +37,7 @@ new WebSocketServer(port = 12306, path = "/ws") {
 - start server
 
 ```
-> sbt run server
+> sbt "run server"
 ```
 
 
