@@ -1,4 +1,4 @@
-package zhongl.websocketkit.stub
+package zhongl.websockit.stub
 
 import io.netty.handler.codec.http.websocketx._
 import io.netty.channel.nio.NioEventLoopGroup

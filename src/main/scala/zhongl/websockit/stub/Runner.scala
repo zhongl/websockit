@@ -1,4 +1,4 @@
-package zhongl.websocketkit.stub
+package zhongl.websockit.stub
 
 import com.twitter.util.Eval
 import java.io.{ File, FileWriter }
@@ -18,8 +18,8 @@ object Runner {
 
   val sample =
     s"""
-      |import zhongl.websocketkit.dsl._
-      |import zhongl.websocketkit.stub._
+      |import zhongl.websockit.dsl._
+      |import zhongl.websockit.stub._
       |
       |new WebSocketServer(port = 12306, path = "/ws") {
       |  def receive = {

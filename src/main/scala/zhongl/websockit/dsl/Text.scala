@@ -1,4 +1,4 @@
-package zhongl.websocketkit.dsl
+package zhongl.websockit.dsl
 
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
 import com.jayway.jsonpath.JsonPath

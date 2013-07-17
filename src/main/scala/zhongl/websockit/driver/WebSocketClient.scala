@@ -1,4 +1,4 @@
-package zhongl.websocketkit.driver
+package zhongl.websockit.driver
 
 import java.net.URI
 import io.netty.handler.codec.http.websocketx._

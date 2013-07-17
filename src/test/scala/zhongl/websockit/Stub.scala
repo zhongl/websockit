@@ -1,10 +1,10 @@
-package zhongl.websocketkit
+package zhongl.websockit
 
 import io.netty.handler.codec.http.websocketx.{ TextWebSocketFrame, WebSocketFrame }
 import java.net.URI
 import java.util.concurrent.{ TimeUnit, SynchronousQueue }
-import zhongl.websocketkit.driver.WebSocketClient
-import zhongl.websocketkit.stub.WebSocketServer
+import zhongl.websockit.driver.WebSocketClient
+import zhongl.websockit.stub.WebSocketServer
 
 object Stub {
   type Handle = PartialFunction[WebSocketFrame, Option[WebSocketFrame]]

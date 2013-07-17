@@ -1,4 +1,4 @@
-**WebSocketKit** provide stub and driver for testing WebSocket applicaiton.
+**websockit** provide stub and driver for testing WebSocket applicaiton.
 
 ## Install
 
@@ -17,7 +17,7 @@
 - clone [websocket-kit](https://github.com/zhongl/websocket-kit)
 
 ```
-> git clone git@github.com:zhongl/websocket-kit.git
+> git clone git@github.com:zhongl/websockit.git
 ```
 
 ## Usage
@@ -25,15 +25,15 @@
 - create a server config sample
 
 ```
-> cd websocket-kit
+> cd websockit
 > sbt run
 ```
 
 - edit config sample for your needs, eg: An echo server like,
 
 ```scala
-import zhongl.websocketkit.dsl._
-import zhongl.websocketkit.stub._
+import zhongl.websockit.dsl._
+import zhongl.websockit.stub._
 
 new WebSocketServer(port = 12306, path = "/ws") {
   def receive = {
@@ -52,8 +52,8 @@ new WebSocketServer(port = 12306, path = "/ws") {
 ## Real Config
 
 ```scala
-import zhongl.websocketkit.dsl._
-import zhongl.websocketkit.stub._
+import zhongl.websockit.dsl._
+import zhongl.websockit.stub._
 
 new WebSocketServer(port = 12306, path = "/ws") {
   def receive = {

@@ -1,12 +1,12 @@
-package zhongl.websocketkit
+package zhongl.websockit
 
-import zhongl.websocketkit.dsl.Text
+import zhongl.websockit.dsl.Text
 import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
 
-class WebSocketKitSpec extends FunSpec with ShouldMatchers {
+class WebsockitSpec extends FunSpec with ShouldMatchers {
 
-  describe("websocket-kit") {
+  describe("websockit") {
     it("'s stub and driver should communicate with each other.") {
       Stub act { case f => Some(f.retain()) } andThen { drive => drive("hi") should be("hi") }
     }

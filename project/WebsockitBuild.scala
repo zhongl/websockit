@@ -7,12 +7,12 @@ import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform._
 
 
-object WebsocketkitBuild extends Build {
+object WebsockitBuild extends Build {
 
   lazy val kit = Project(
     id = "kit",
     base = file("."),
-    settings = commonSettings ++ (name := "websocket-kit")
+    settings = commonSettings ++ (name := "websockit")
   )
 
   lazy val commonSettings = Project.defaultSettings ++ scalariformSettings ++ Seq(
