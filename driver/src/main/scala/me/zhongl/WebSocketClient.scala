@@ -75,7 +75,9 @@ abstract class WebSocketClient(
 
   private def checkState(e: => Boolean, m: String) = if (!e) throw new IllegalStateException(m)
 
-  protected lazy val handle = new SimpleChannelInboundHandler[AnyRef]() {
+  protected lazy val handle = new Handle
+
+  protected class Handle extends SimpleChannelInboundHandler[AnyRef]() {
 
     @volatile var handshakeFuture: ChannelPromise = _
 
