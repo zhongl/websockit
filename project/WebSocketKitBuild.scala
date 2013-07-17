@@ -32,7 +32,7 @@ object WebsocketkitBuild extends Build {
     "io.netty" % "netty-codec-http" % "4.0.1.Final",
     "com.jayway.jsonpath" % "json-path" % "0.8.1",
     "ch.qos.logback" % "logback-classic" % "1.0.13",
-    "com.twitter" %% "util-collection" % "6.3.7"
+    "com.twitter" %% "util-eval" % "6.3.7"
   )
 
   lazy val testDependencies = Seq(

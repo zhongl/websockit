@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory
 
 abstract class WebSocketServer(port: Int = 12306, path: String = "/") {
 
+  require(port > 1024 && port < 65536, s"Invalid port number: $port")
+  require(path != null && path.startsWith("/"), s"Invalid path: $path")
+
   protected lazy val log = LoggerFactory.getLogger(classOf[WebSocketServer])
 
   private lazy val boss = new NioEventLoopGroup()
@@ -29,6 +32,8 @@ abstract class WebSocketServer(port: Int = 12306, path: String = "/") {
         .channel(classOf[NioServerSocketChannel])
         .childHandler(new Initializer())
         .bind(port).sync()
+
+      log.info(s"WebSocket server listen at ws://localhost:${port}${path}")
     } catch {
       case t: Throwable => shutdown(); throw t
     }
@@ -55,7 +60,7 @@ abstract class WebSocketServer(port: Int = 12306, path: String = "/") {
 
     def channelRead0(ctx: ChannelHandlerContext, msg: Object): Unit = msg match {
       case r: FullHttpRequest => handleHttpRequest(ctx, r)
-      case f: WebSocketFrame => handleWebSocketFrame(ctx, f)
+      case f: WebSocketFrame  => handleWebSocketFrame(ctx, f)
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
@@ -66,15 +71,15 @@ abstract class WebSocketServer(port: Int = 12306, path: String = "/") {
     private def handleHttpRequest(implicit context: ChannelHandlerContext, request: FullHttpRequest): Unit =
       request match {
         case DecodeNotSuccess() => sendThenClose(response(BAD_REQUEST))
-        case UriIsNotPath() => sendThenClose(response(NOT_FOUND))
-        case _ => handshake(request)
+        case UriIsNotPath()     => sendThenClose(response(NOT_FOUND))
+        case _                  => handshake(request)
       }
 
     private def handleWebSocketFrame(context: ChannelHandlerContext, frame: WebSocketFrame): Unit =
       frame match {
         case f: CloseWebSocketFrame => handshaker.close(context.channel(), f.retain())
-        case f: PingWebSocketFrame => context.channel().writeAndFlush(new PongWebSocketFrame(f.content().retain()))
-        case _ => receive(frame) foreach { context.channel().writeAndFlush }
+        case f: PingWebSocketFrame  => context.channel().writeAndFlush(new PongWebSocketFrame(f.content().retain()))
+        case _                      => receive(frame) foreach { context.channel().writeAndFlush }
       }
 
     private def response(status: HttpResponseStatus) = new DefaultFullHttpResponse(HTTP_1_1, status)

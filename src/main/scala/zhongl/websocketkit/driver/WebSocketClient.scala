@@ -101,10 +101,10 @@ abstract class WebSocketClient(
       }
 
       msg match {
-        case f: PingWebSocketFrame => ctx.channel.writeAndFlush(new PongWebSocketFrame(f.content()))
+        case f: PingWebSocketFrame  => ctx.channel.writeAndFlush(new PongWebSocketFrame(f.content()))
         case f: CloseWebSocketFrame => close(ctx.channel, f)
-        case f: WebSocketFrame => receive(f) foreach { ctx.channel().writeAndFlush }
-        case m => throw new IllegalStateException("Unknown message: " + m)
+        case f: WebSocketFrame      => receive(f) foreach { ctx.channel().writeAndFlush }
+        case m                      => throw new IllegalStateException("Unknown message: " + m)
       }
     }
 
