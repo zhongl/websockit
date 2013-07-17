@@ -19,11 +19,14 @@ abstract class WebSocketClient(
   maxFramePayloadLength: Int = 4096
   ) {
 
-  private lazy val log   = LoggerFactory.getLogger(classOf[WebSocketClient])
-  private lazy val group = new NioEventLoopGroup()
+  protected lazy val log = LoggerFactory.getLogger(classOf[WebSocketClient])
 
-  @volatile private var online           = false
-  @volatile private var channel: Channel = _
+  private lazy val group  = new NioEventLoopGroup()
+  private lazy val handle = new Handle
+
+  @volatile protected var online           = false
+  @volatile protected var channel: Channel = _
+
 
   def connect(): Unit = {
 
@@ -71,11 +74,10 @@ abstract class WebSocketClient(
     channel.writeAndFlush(new PingWebSocketFrame())
   }
 
-  def receive(frame: WebSocketFrame): Unit
+  def receive: PartialFunction[WebSocketFrame, Option[WebSocketFrame]]
 
   private def checkState(e: => Boolean, m: String) = if (!e) throw new IllegalStateException(m)
 
-  protected lazy val handle = new Handle
 
   protected class Handle extends SimpleChannelInboundHandler[AnyRef]() {
 
@@ -104,7 +106,7 @@ abstract class WebSocketClient(
       msg match {
         case f: PingWebSocketFrame  => ctx.channel.writeAndFlush(new PongWebSocketFrame(f.content()))
         case f: CloseWebSocketFrame => close(ctx.channel, f)
-        case f: WebSocketFrame      => receive(f)
+        case f: WebSocketFrame      => receive(f) foreach { ctx.channel().writeAndFlush }
         case m                      => throw new IllegalStateException("Unknown message: " + m)
       }
     }
@@ -124,12 +126,7 @@ abstract class WebSocketClient(
         log.error("WebSocket server close connect: {}, {}", frame.statusCode(), frame.reasonText())
 
         val f = new CloseWebSocketFrame(frame.statusCode(), frame.reasonText())
-        channel.writeAndFlush(f).addListener(new ChannelFutureListener {
-          def operationComplete(future: ChannelFuture) {
-            channel.close()
-          }
-        })
-
+        channel.writeAndFlush(f).addListener(ChannelFutureListener.CLOSE)
       } else {
         channel.close()
       }
