@@ -3,18 +3,10 @@ import sbt.Keys._
 
 object WebsocketkitBuild extends Build {
 
-  lazy val root = Project(id = "root", base = file(".")) aggregate(stub, driver)
-
-  lazy val stub = Project(
-    id = "stub",
-    base = file("stub"),
-    settings = commonSettings ++ (name := "websocket-kit-stub")
-  )
-
-  lazy val driver = Project(
-    id = "driver",
-    base = file("driver"),
-    settings = commonSettings ++ (name := "websocket-kit-driver")
+  lazy val kit = Project(
+    id = "kit",
+    base = file("."),
+    settings = commonSettings ++ (name := "websocket-kit")
   )
 
   lazy val commonSettings = Project.defaultSettings ++ Seq(
