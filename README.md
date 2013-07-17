@@ -49,6 +49,28 @@ new WebSocketServer(port = 12306, path = "/ws") {
 ```
 
 
+## Real Config
+
+```scala
+import zhongl.websocketkit.dsl._
+import zhongl.websocketkit.stub._
+
+new WebSocketServer(port = 12306, path = "/ws") {
+  def receive = {
+    case Text(json) if json ? "$.to" == "allen" => Text(s"""{"code":200, "uuid":${json ? "$.uuid"}}""")
+  }
+}
+```
+
+run the config above, then send json ` {"to":"allen", "uuid":1}` to `ws://localhost:12306/ws`, you should get `{"code":200, "uuid":1}`
+
+### Tips
+
+- use [JSONPath](http://goessner.net/articles/JsonPath/) like `$.to`, for querying json value
+- use `s"""${var}"""` format text with variables
+- without head `s` a raw text/json like `"""[1,2,3]"""` would be return
+
+
 ## Copyright and license
 
 Copyright 2013 zhongl
