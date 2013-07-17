@@ -2,17 +2,9 @@
 
 ## Install
 
-- install [Homebrew](http://mxcl.github.io/homebrew/)
+### Install
 
-```
-> ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
-```
-
-- install [SBT](http://www.scala-sbt.org)
-
-```
-> brew install sbt
-```
+- install [SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)
 
 - clone [websocket-kit](https://github.com/zhongl/websocket-kit)
 
