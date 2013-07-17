@@ -1,4 +1,4 @@
-package me.zhongl
+package me.zhongl.stub
 
 abstract class WebSocketServer(port: Int = 12306, path: String = "/") {
 
