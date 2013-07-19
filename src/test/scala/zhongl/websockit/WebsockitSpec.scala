@@ -17,9 +17,15 @@ class WebsockitSpec extends FunSpec with ShouldMatchers {
         _("""{"to":"allen", "uuid":1}""") should be("""{"code":200, "uuid":1}""")
       }
     }
+    it("should support compose critical.") {
+      Stub act {
+        case Text(json) if json ? "$.to" == "allen" && json ? "$.uuid" == 1 =>
+          Text(s"""{"code":200, "uuid":${json ? "$.uuid"}}""")
+      } andThen {
+        _("""{"to":"allen", "uuid":1}""") should be("""{"code":200, "uuid":1}""")
+      }
+    }
   }
 
 }
-
-
 

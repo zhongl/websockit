@@ -15,11 +15,9 @@ object Stub {
   class Procedure(h: Handle) {
 
     def andThen(f: Drive => Unit) = {
-      val server = new WebSocketServer() {
-        def receive = h
-      }
+      val server = new WebSocketServer(defaultMock = h)
 
-      val client = new WebSocketClient(new URI("ws://localhost:12306")) {
+      val client = new WebSocketClient(new URI("ws://localhost:12306/test")) {
 
         val queue = new SynchronousQueue[String]()
 
