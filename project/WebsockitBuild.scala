@@ -18,7 +18,7 @@ object WebsockitBuild extends Build {
   lazy val commonSettings = Project.defaultSettings ++ scalariformSettings ++ Seq(
     organization := "me.zhongl",
     version := "0.1-SNAPSHOT",
-    scalaVersion := "2.10.0",
+    scalaVersion := "2.10.2",
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize"),
     javacOptions ++= Seq("-target", "1.6", "-source", "1.6"),
     libraryDependencies ++= compileDependencies ++ testDependencies,
@@ -29,13 +29,13 @@ object WebsockitBuild extends Build {
   )
 
   lazy val compileDependencies = Seq(
-    "io.netty" % "netty-codec-http" % "4.0.1.Final",
+    "io.netty" % "netty-codec-http" % "4.0.2.Final",
     "com.jayway.jsonpath" % "json-path" % "0.8.1",
     "ch.qos.logback" % "logback-classic" % "1.0.13",
     "com.twitter" %% "util-eval" % "6.3.7"
   )
 
   lazy val testDependencies = Seq(
-    "org.scalatest" % "scalatest_2.10" % "1.9.1"
+    "org.scalatest" %% "scalatest" % "1.9.1"
   ) map { _ % "test" }
 }
