@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>context</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="http://cdn.jsdelivr.net/codemirror/3.14.0/codemirror.css"/>
+  <link rel="stylesheet" type="text/css"
+        href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap.min.css"/>
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="http://cdn.jsdelivr.net/codemirror/3.14.0/codemirror.js"></script>
+  <style type="text/css">
+    body {
+      padding: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      margin: 0px;
+      font-family: Courier;
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      resize: none;
+    }
+
+    textarea.drive {
+      margin-top: 10px;
+    }
+
+    div {
+      padding: 5px;
+      display: inline-block;
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+    }
+
+    .column.left {
+      float: left;
+    }
+
+    .column.right {
+      float: right;
+    }
+  </style>
+  <script language="javascript">
+    $(function () {
+      var bodyPadding = parseInt($("body").css("padding"));
+      var marginTop = parseInt($("textarea.drive").css("margin-top"));
+
+      function height() {return $(window).height();}
+
+      function width() { return $(window).width() / 2 - bodyPadding - 2; }
+
+      function stubHeight() {return (height() - bodyPadding * 2 - marginTop) / 4 * 3;}
+
+      function driveHeight() {return (height() - bodyPadding * 2 - marginTop) / 4;}
+
+      function logsHeight() { return (height() - bodyPadding * 2); }
+
+      function layout() {
+        $(".column").css("width", width());
+        $(".column").css("height", height());
+        $(".stub").css("height", stubHeight());
+        $(".drive").css("height", driveHeight);
+        $(".logs").css("height", logsHeight());
+      }
+
+      $(window).resize(layout);
+
+      layout();
+
+    });
+  </script>
+</head>
+
+<div class="column left">
+  <textarea rows="5" class="stub">new Mocks {
+    ($".command" == "MESSAGE" && $".to" == "allen") => json"""
+    {"command":"ACK", "seq":${ $".seq" }, "code":200}
+    """
+    }
+  </textarea>
+  <textarea rows="5" class="drive">new Mocks {
+    ($".command" == "MESSAGE" && $".to" == "allen") => json"""
+    {"command":"ACK", "seq":${ $".seq" }, "code":200}
+    """
+    }
+  </textarea>
+</div>
+<div class="column right">
+  <textarea rows="5" class="logs">new Mocks {
+    ($".command" == "MESSAGE" && $".to" == "allen") => json"""
+    {"command":"ACK", "seq":${ $".seq" }, "code":200}
+    """
+    }
+  </textarea>
+</div>
+</html>
