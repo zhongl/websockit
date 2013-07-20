@@ -4,11 +4,14 @@
   <meta charset="utf-8"/>
   <title>context</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" type="text/css" href="http://cdn.jsdelivr.net/codemirror/3.14.0/codemirror.css"/>
   <link rel="stylesheet" type="text/css"
-        href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap.min.css"/>
+        href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css"/>
   <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-  <script src="http://cdn.jsdelivr.net/codemirror/3.14.0/codemirror.js"></script>
+  <link rel="stylesheet" type="text/css" href="codemirror.css"/>
+  <link rel="stylesheet" type="text/css" href="ambiance.css"/>
+  <script src="codemirror.js"></script>
+  <script src="clike.js"></script>
+  <script src="javascript.js.js"></script>
   <style type="text/css">
     body {
       padding: 10px;
@@ -24,11 +27,16 @@
       resize: none;
     }
 
-    textarea.drive {
-      margin-top: 10px;
+    .splitter {
+      padding: 5px;
+      margin: 0px;
     }
 
-    div {
+    form {
+      margin: 0px;
+    }
+
+    .column {
       padding: 5px;
       display: inline-block;
       box-sizing: border-box;
@@ -44,57 +52,72 @@
       float: right;
     }
   </style>
-  <script language="javascript">
-    $(function () {
-      var bodyPadding = parseInt($("body").css("padding"));
-      var marginTop = parseInt($("textarea.drive").css("margin-top"));
-
-      function height() {return $(window).height();}
-
-      function width() { return $(window).width() / 2 - bodyPadding - 2; }
-
-      function stubHeight() {return (height() - bodyPadding * 2 - marginTop) / 4 * 3;}
-
-      function driveHeight() {return (height() - bodyPadding * 2 - marginTop) / 4;}
-
-      function logsHeight() { return (height() - bodyPadding * 2); }
-
-      function layout() {
-        $(".column").css("width", width());
-        $(".column").css("height", height());
-        $(".stub").css("height", stubHeight());
-        $(".drive").css("height", driveHeight);
-        $(".logs").css("height", logsHeight());
-      }
-
-      $(window).resize(layout);
-
-      layout();
-
-    });
-  </script>
 </head>
+<body>
 
 <div class="column left">
-  <textarea rows="5" class="stub">new Mocks {
-    ($".command" == "MESSAGE" && $".to" == "allen") => json"""
+  <form method="post" action="stub/:path">
+    <textarea rows="5" id="stub">new Stub {
+  ($".command" == "MESSAGE" && $".to" == "allen") => json"""
     {"command":"ACK", "seq":${ $".seq" }, "code":200}
-    """
-    }
-  </textarea>
-  <textarea rows="5" class="drive">new Mocks {
-    ($".command" == "MESSAGE" && $".to" == "allen") => json"""
-    {"command":"ACK", "seq":${ $".seq" }, "code":200}
-    """
-    }
-  </textarea>
+  """
+}</textarea>
+  </form>
+  <div class="splitter"></div>
+  <form method="post" action="drive/:path">
+    <textarea rows="5" id="drive">{"command":"ACK", "seq":1, "code":200} </textarea>
+  </form>
 </div>
 <div class="column right">
-  <textarea rows="5" class="logs">new Mocks {
-    ($".command" == "MESSAGE" && $".to" == "allen") => json"""
-    {"command":"ACK", "seq":${ $".seq" }, "code":200}
-    """
-    }
+  <textarea rows="5" id="console">INFO : WebSocket connected.
   </textarea>
 </div>
+<script language="javascript">
+  $(function () {
+    var bodyPadding = parseInt($("body").css("padding"));
+    var splitter = parseInt($("div.splitter").css("padding")) * 2;
+
+    function height() {return $(window).height();}
+
+    function width() { return $(window).width() / 2 - bodyPadding - 2; }
+
+    function stubHeight() {return (height() - bodyPadding * 2 - splitter) / 4 * 3;}
+
+    function driveHeight() {return (height() - bodyPadding * 2 - splitter) / 4;}
+
+    function consoleHeight() { return (height() - bodyPadding * 2); }
+
+    var stub = CodeMirror.fromTextArea(document.getElementById("stub"), {
+      lineNumbers: true,
+      tabSize    : 2,
+      theme      : "ambiance",
+      mode       : "text/x-scala"
+    });
+
+    var drive = CodeMirror.fromTextArea(document.getElementById("drive"), {
+      lineNumbers: true,
+      tabSize    : 2,
+      theme      : "ambiance"
+    });
+
+    var console = CodeMirror.fromTextArea(document.getElementById("console"), {
+      readOnly   : true,
+      theme      : "ambiance"
+    });
+
+    function layout() {
+      $(".column").css("width", width());
+      stub.setSize(width(), stubHeight());
+      drive.setSize(width(), driveHeight());
+      console.setSize(width(), consoleHeight());
+    }
+
+
+    $(window).resize(layout);
+
+    layout();
+  });
+</script>
+
+</body>
 </html>
