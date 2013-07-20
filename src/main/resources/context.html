@@ -11,6 +11,8 @@
   <script src="codemirror.js"></script>
   <script src="clike.js"></script>
   <script src="javascript.js"></script>
+  <script src="closebrackets.js"></script>
+  <script src="matchbrackets.js"></script>
   <style type="text/css">
     body {
       padding: 10px;
@@ -38,9 +40,9 @@
 
 <div class="column  pull-left">
   <form method="post" action="stub/:path">
-    <textarea rows="5" id="stub">($".command" == "MESSAGE" && $".to" == "allen") => json"""
+    <textarea rows="5" id="stub"> ($".command" == "MESSAGE" && $".to" == "allen") => json"""
   {"command":"ACK", "seq":${ $".seq" }, "code":200}
-"""</textarea>
+""" </textarea>
   </form>
   <div class="splitter"></div>
   <form method="post" action="drive/:path">
@@ -66,22 +68,27 @@
 
     function consoleHeight() { return (height()); }
 
+
     var stub = CodeMirror.fromTextArea(document.getElementById("stub"), {
-      lineNumbers: true,
-      tabSize    : 2,
-      theme      : "ambiance",
-      mode       : "text/x-scala"
+      lineNumbers      : true,
+      tabSize          : 2,
+      theme            : "ambiance",
+      autoCloseBrackets: true,
+      matchBrackets    : true,
+      mode             : "text/x-scala"
     });
 
     var drive = CodeMirror.fromTextArea(document.getElementById("drive"), {
-      lineNumbers: true,
-      tabSize    : 2,
-      theme      : "ambiance"
+      lineNumbers      : true,
+      tabSize          : 2,
+      autoCloseBrackets: true,
+      matchBrackets    : true,
+      theme            : "ambiance"
     });
 
     var console = CodeMirror.fromTextArea(document.getElementById("console"), {
-      readOnly   : true,
-      theme      : "ambiance"
+      readOnly: true,
+      theme   : "ambiance"
     });
 
     function layout() {
