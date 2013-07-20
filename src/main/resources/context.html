@@ -16,16 +16,6 @@
       padding: 10px;
     }
 
-    textarea {
-      width: 100%;
-      margin: 0px;
-      font-family: Courier;
-      box-sizing: border-box;
-      -moz-box-sizing: border-box;
-      -webkit-box-sizing: border-box;
-      resize: none;
-    }
-
     .splitter {
       padding: 5px;
       margin: 0px;
@@ -42,32 +32,22 @@
       -moz-box-sizing: border-box;
       -webkit-box-sizing: border-box;
     }
-
-    .column.left {
-      float: left;
-    }
-
-    .column.right {
-      float: right;
-    }
   </style>
 </head>
 <body>
 
-<div class="column left">
+<div class="column  pull-left">
   <form method="post" action="stub/:path">
-    <textarea rows="5" id="stub">new Stub {
-  ($".command" == "MESSAGE" && $".to" == "allen") => json"""
-    {"command":"ACK", "seq":${ $".seq" }, "code":200}
-  """
-}</textarea>
+    <textarea rows="5" id="stub">($".command" == "MESSAGE" && $".to" == "allen") => json"""
+  {"command":"ACK", "seq":${ $".seq" }, "code":200}
+"""</textarea>
   </form>
   <div class="splitter"></div>
   <form method="post" action="drive/:path">
     <textarea rows="5" id="drive">{"command":"ACK", "seq":1, "code":200} </textarea>
   </form>
 </div>
-<div class="column right">
+<div class="column pull-right">
   <textarea rows="5" id="console">INFO : WebSocket connected.
   </textarea>
 </div>
@@ -76,15 +56,15 @@
     var bodyPadding = parseInt($("body").css("padding"));
     var splitter = parseInt($("div.splitter").css("padding")) * 2;
 
-    function height() {return $(window).height();}
+    function height() {return $(window).height() - bodyPadding * 2;}
 
     function width() { return $(window).width() / 2 - bodyPadding - 2; }
 
-    function stubHeight() {return (height() - bodyPadding * 2 - splitter) / 4 * 3;}
+    function stubHeight() {return (height() - splitter) / 4 * 3;}
 
-    function driveHeight() {return (height() - bodyPadding * 2 - splitter) / 4;}
+    function driveHeight() {return (height() - splitter) / 4;}
 
-    function consoleHeight() { return (height() - bodyPadding * 2); }
+    function consoleHeight() { return (height()); }
 
     var stub = CodeMirror.fromTextArea(document.getElementById("stub"), {
       lineNumbers: true,
