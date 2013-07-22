@@ -8,7 +8,7 @@ import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.channel._
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http._
-import java.util.concurrent.{ TimeoutException, TimeUnit, SynchronousQueue }
+import java.util.concurrent.{ ThreadFactory, TimeoutException, TimeUnit, SynchronousQueue }
 
 object Client {
 
@@ -44,7 +44,9 @@ object Client {
 
   private def connect(uri: URI)(r: Receive) = {
 
-    val g = new NioEventLoopGroup(1)
+    val g = new NioEventLoopGroup(1, new ThreadFactory {
+      def newThread(r: Runnable) = new Thread(r, "Client-EventLoopGroup")
+    })
 
     try {
       val h = WebSocketClientHandshakerFactory
@@ -75,15 +77,13 @@ object Client {
       case f: WebSocketFrame                             => handle(ctx, f)
     }
 
-    private def handle(c: ChannelHandlerContext, f: WebSocketFrame) = f match {
+    override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = ctx.close()
+
+    private def handle(c: ChannelHandlerContext, f: WebSocketFrame) = r(f) map {
       case f: CloseWebSocketFrame => h.close(c.channel(), f)
-      case f: PingWebSocketFrame  => c.writeAndFlush(new PongWebSocketFrame(f.content().retain()))
-      case _: PongWebSocketFrame  =>
-      case _ => r(f) map {
-        case f: CloseWebSocketFrame => h.close(c.channel(), f)
-        case f                      => c.writeAndFlush(f)
-      }
+      case f                      => c.writeAndFlush(f)
     }
+
   }
 
 }

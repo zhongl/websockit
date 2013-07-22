@@ -15,13 +15,15 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame
 import java.nio.charset.Charset
 import io.netty.buffer.Unpooled
 import scala.Some
+import java.util.concurrent.atomic.AtomicReference
 
 class Server(port: Int) {
   private lazy val log = LoggerFactory.getLogger(classOf[Server])
+  private lazy val utf8 = Charset.forName("UTF-8")
   private lazy val boss = new NioEventLoopGroup()
   private lazy val worker = new NioEventLoopGroup()
 
-  private val utf8 = Charset.forName("UTF-8")
+  private val consoleRef = new AtomicReference[Console]()
 
   def run() = try {
     new ServerBootstrap()
@@ -73,8 +75,14 @@ class Server(port: Int) {
 
     private def get(path: String)(implicit c: ChannelHandlerContext, r: FullHttpRequest): Unit = path match {
       case "/stub"    => response(c, ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
-      case "/console" => websoclet = Console(c, r)
+      case "/console" => websoclet = Console(c, r) map { set(consoleRef, _) }
       case _          => response(c, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
+    }
+
+    private def set[T <: WebSoclet](ref: AtomicReference[T], cur: T): T = {
+      val pre = ref.getAndSet(cur)
+      if (pre != null) pre.close("Close by the other one connected.")
+      cur
     }
 
     private def ok(`type`: String, content: String) = {
