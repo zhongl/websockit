@@ -13,7 +13,9 @@ case class Http(host: String, port: Int) {
 
   private lazy val queue = new SynchronousQueue[AnyRef]()
 
-  private lazy val handler = new SimpleChannelInboundHandler[FullHttpResponse]() {
+  def get(path: String) = sendAndWait(new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, path))
+
+  private def handler = new SimpleChannelInboundHandler[FullHttpResponse]() {
     def channelRead0(ctx: ChannelHandlerContext, msg: FullHttpResponse) {
       queue.put(msg.retain())
       ctx.close()
@@ -25,16 +27,11 @@ case class Http(host: String, port: Int) {
     }
   }
 
-  private lazy val initializer = new ChannelInitializer[SocketChannel] {
-    def initChannel(ch: SocketChannel) {
-      val pipeline = ch.pipeline()
-      pipeline.addLast("http-codec", new HttpClientCodec())
-      pipeline.addLast("aggregator", new HttpObjectAggregator(8194))
-      pipeline.addLast("handler", handler)
-    }
+  private def initializer = new ChannelInitializer[SocketChannel] {
+    def initChannel(ch: SocketChannel): Unit = ch.pipeline().addLast(
+      new HttpClientCodec(), new HttpObjectAggregator(8194), handler
+    )
   }
-
-  def get(path: String) = sendAndWait(new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, path))
 
   private def sendAndWait(request: DefaultFullHttpRequest) = {
     val g = new NioEventLoopGroup(1)
