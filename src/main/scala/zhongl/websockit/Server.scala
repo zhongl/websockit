@@ -20,11 +20,6 @@ class Server(port: Int) {
   private lazy val log = LoggerFactory.getLogger(classOf[Server])
   private lazy val boss = new NioEventLoopGroup()
   private lazy val worker = new NioEventLoopGroup()
-  private lazy val initializer = new ChannelInitializer[SocketChannel] {
-    def initChannel(ch: SocketChannel): Unit = ch.pipeline().addLast(
-      new HttpServerCodec(), new HttpObjectAggregator(65536), new Handler()
-    )
-  }
 
   private val utf8 = Charset.forName("UTF-8")
 
@@ -47,11 +42,19 @@ class Server(port: Int) {
     this
   }
 
+  private def initializer = new ChannelInitializer[SocketChannel] {
+    def initChannel(ch: SocketChannel): Unit = ch.pipeline().addLast(
+      new HttpServerCodec(), new HttpObjectAggregator(65536), new Handler()
+    )
+  }
+
   private class Handler extends SimpleChannelInboundHandler[AnyRef]() {
 
+    private var websoclet: Option[WebSoclet] = None
+
     def channelRead0(c: ChannelHandlerContext, m: AnyRef): Unit = m match {
-      case f: WebSocketFrame  => handleWebSocketFrame(f, c)
       case r: FullHttpRequest => handleHttpRequest(r, c)
+      case f: WebSocketFrame  => websoclet map { _.receive }
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
@@ -62,15 +65,16 @@ class Server(port: Int) {
 
     private def handleWebSocketFrame(frame: WebSocketFrame, context: ChannelHandlerContext): Unit = {}
 
-    private def handleHttpRequest(r: FullHttpRequest, c: ChannelHandlerContext): Unit = r match {
-      case Get(path)           => get(path, c)
+    private def handleHttpRequest(implicit r: FullHttpRequest, c: ChannelHandlerContext): Unit = r match {
+      case Get(path)           => get(path)
       case Post(path, content) =>
       case _                   => throw new UnsupportedOperationException(s"${r.getMethod} ${r.getUri}")
     }
 
-    private def get(path: String, c: ChannelHandlerContext): Unit = path match {
-      case "/stub" => response(c, ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
-      case _       => response(c, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
+    private def get(path: String)(implicit c: ChannelHandlerContext, r: FullHttpRequest): Unit = path match {
+      case "/stub"    => response(c, ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
+      case "/console" => websoclet = Console(c, r)
+      case _          => response(c, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
     }
 
     private def ok(`type`: String, content: String) = {

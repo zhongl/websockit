@@ -3,17 +3,18 @@ package zhongl.websockit
 import org.scalatest.{ BeforeAndAfterAll, FunSpec }
 import org.scalatest.matchers.ShouldMatchers
 import java.net.URI
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame
+import io.netty.handler.codec.http.websocketx.{ TextWebSocketFrame, CloseWebSocketFrame }
 import java.util.concurrent.{ TimeUnit, SynchronousQueue }
 
 class ServerSpec extends FunSpec with ShouldMatchers with BeforeAndAfterAll {
 
   describe("Server") {
 
-    ignore("should open websockit console") {
+    it("should open websockit console") {
       val queue = new SynchronousQueue[AnyRef]()
       Client.stub(new URI("ws://localhost:12306/console")) {
-        case f => queue.put(f); Some(new CloseWebSocketFrame())
+        case f: TextWebSocketFrame => queue.put(f.retain().text()); Some(new CloseWebSocketFrame())
+        case f                     => queue.put(f.retain()); Some(new CloseWebSocketFrame())
       }
       queue.poll(3, TimeUnit.SECONDS) should be("WebSockit console is ready!")
     }
