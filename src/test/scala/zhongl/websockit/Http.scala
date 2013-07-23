@@ -17,8 +17,12 @@ case class Http(host: String, port: Int) {
 
   private lazy val queue = new SynchronousQueue[AnyRef]()
 
-  def post(path: String, content: String): Unit =
-    sendAndWait(new DefaultFullHttpRequest(HTTP_1_1, POST, path, Unpooled.copiedBuffer(content, utf8)))
+  def post(path: String, content: String): Unit = {
+    val c = Unpooled.copiedBuffer(content, utf8)
+    val request = new DefaultFullHttpRequest(HTTP_1_1, POST, path, c)
+    HttpHeaders.setContentLength(request, c.readableBytes())
+    sendAndWait(request)
+  }
 
   def get(path: String) = sendAndWait(new DefaultFullHttpRequest(HTTP_1_1, GET, path))
 

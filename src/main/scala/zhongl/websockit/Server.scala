@@ -23,9 +23,6 @@ class Server(port: Int) {
   private lazy val boss = new NioEventLoopGroup()
   private lazy val worker = new NioEventLoopGroup()
 
-  private val consoleRef = new AtomicReference[Option[Console]](None)
-  private val sessionRef = new AtomicReference[Option[Session]](None)
-
   def run() = try {
     new ServerBootstrap()
       .group(boss, worker)
@@ -57,7 +54,11 @@ class Server(port: Int) {
 
     def channelRead0(c: ChannelHandlerContext, m: AnyRef): Unit = m match {
       case r: FullHttpRequest => handleHttpRequest(c, r)
-      case f: WebSocketFrame  => websoclet map { _.receive(f) }
+      case f: WebSocketFrame => try { websoclet map { _.receive(f) } } catch {
+        case t: Throwable =>
+          c.writeAndFlush(f.retain())
+          error("Invalid WebSocket frame", t)
+      }
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
@@ -79,21 +80,20 @@ class Server(port: Int) {
 
     private def get(path: String)(implicit c: ChannelHandlerContext, r: FullHttpRequest): Unit = path match {
       case "/stub"      => response(ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
-      case "/console"   => websoclet = Console(c, r) map { set(consoleRef, _) }
-      case "/websocket" => websoclet = Session(c, r) map { set(sessionRef, _) }
+      case "/console"   => websoclet = Console(c, r)
+      case "/websocket" => websoclet = Session(c, r)
       case _            => response(new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
     }
 
     private def updateStub(content: String) = {
-      val log = consoleRef.get foreach (_: Console => Unit)
 
-      log { _.info(s"Update stub \n$content\n") }
+      info(s"Update stub \n$content\n")
       try {
-        sessionRef.get map { _.upgrade(content) }
+        Session.update(content)
         new DefaultFullHttpResponse(HTTP_1_1, OK)
       } catch {
         case t: Throwable =>
-          log { _.error(t.getMessage) }
+          error("Failed to update stub, ", t)
           new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST)
       }
     }
@@ -112,6 +112,16 @@ class Server(port: Int) {
 
     private def response(r: FullHttpResponse)(implicit c: ChannelHandlerContext): Unit = {
       c.writeAndFlush(r).addListener(ChannelFutureListener.CLOSE)
+    }
+
+    private def info(m: String) = {
+      Console.info(m)
+      log.info(m)
+    }
+
+    private def error(m: String, t: Throwable) = {
+      Console.error(t.getMessage)
+      log.error(m, t)
     }
 
   }

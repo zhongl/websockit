@@ -5,6 +5,7 @@ import io.netty.handler.codec.http.FullHttpRequest
 import io.netty.handler.codec.http.HttpHeaders.Names._
 import io.netty.handler.codec.http.websocketx._
 import com.twitter.util.Eval
+import java.util.concurrent.atomic.AtomicReference
 
 abstract class WebSoclet {
 
@@ -23,7 +24,7 @@ abstract class WebSoclet {
 }
 
 object WebSoclet {
-  def handshake(c: ChannelHandlerContext, r: FullHttpRequest) = {
+  def handshake(c: ChannelHandlerContext, r: FullHttpRequest)(f: WebSocketServerHandshaker => WebSoclet) = {
     val uri = "ws://" + r.headers().get(HOST) + r.getUri // TODO ws | wss ?
     // TODO Support subprotocol
     val h = new WebSocketServerHandshakerFactory(uri, null, false).newHandshaker(r)
@@ -32,7 +33,7 @@ object WebSoclet {
       None
     } else {
       h.handshake(c.channel(), r)
-      Some(h)
+      Some(f(h))
     }
   }
 }
@@ -42,34 +43,73 @@ class Console(val c: ChannelHandlerContext, val h: WebSocketServerHandshaker) ex
   c.writeAndFlush(new TextWebSocketFrame("WebSockit console is ready!"))
 
   def log(m: String) = c.writeAndFlush(new TextWebSocketFrame(m))
-
-  def info(m: String) = log(s"INFO : $m")
-
-  def error(m: String) = log(s"ERROR: $m")
 }
 
 object Console {
-  def apply(c: ChannelHandlerContext, r: FullHttpRequest) = WebSoclet.handshake(c, r) map { new Console(c, _) }
+
+  private val singleton = new AtomicReference[Option[Console]](None)
+
+  def error(m: String) = singleton.get() foreach { _.log(s"ERROR: $m") }
+
+  def info(m: String) = singleton.get() foreach { _.log(s"INFO : $m") }
+
+  def apply(c: ChannelHandlerContext, r: FullHttpRequest) = WebSoclet.handshake(c, r) {
+    h =>
+      val cur = new Console(c, h)
+      singleton.getAndSet(Some(cur)) foreach { _.close() }
+      cur
+  }
 }
 
-class Session(val c: ChannelHandlerContext, val h: WebSocketServerHandshaker) extends WebSoclet {
-  private val eval = new Eval()
-
-  @volatile private var stub: PartialFunction[String, String] = _
-
-  def upgrade(content: String): Unit = {
-
-  }
+class Session(val c: ChannelHandlerContext,
+    val h: WebSocketServerHandshaker,
+    @volatile var stub: Stub) extends WebSoclet {
 
   override def receive = {
     case f: PingWebSocketFrame  => c.writeAndFlush(new PongWebSocketFrame(f.content().retain()))
     case f: CloseWebSocketFrame => h.close(c.channel(), f.retain())
     case f: PongWebSocketFrame  =>
-    case f: TextWebSocketFrame  => c.writeAndFlush(new TextWebSocketFrame(stub(f.retain().text())))
-    case f                      => c.writeAndFlush(f.retain()) // echo frame
+    case f: TextWebSocketFrame  => c.writeAndFlush(new TextWebSocketFrame(stub.receive(f.retain().text())))
   }
 }
 
 object Session {
-  def apply(c: ChannelHandlerContext, r: FullHttpRequest) = WebSoclet.handshake(c, r) map { new Session(c, _) }
+  private val defaultContent = {
+    val tq = "\"\"\""
+    val d = "$"
+    s"""
+      |// `=~` is equal, like: $d".key" =~ "value"
+      |// `=*` is regex, like: $d".key" =* "v\\w+"
+      |// `< or >` can use for number.
+      |
+      |// ($d".to" =~ "allen" || $d".seq" > 25) >> json$tq{"code":200, "seq":$d{ $d".seq" }}
+      |
+      |(() => true) >> in  // echo input
+    """.stripMargin
+  }
+
+  private val eval = new Eval()
+
+  private val singleton = new AtomicReference[Option[Session]](None)
+
+  @volatile var content = defaultContent
+
+  def update(stub: String) = {
+    content = stub
+    singleton.get() foreach { _.stub = doEval(stub) }
+  }
+
+  def apply(c: ChannelHandlerContext, r: FullHttpRequest) = WebSoclet.handshake(c, r) {
+    h =>
+      val s = new Session(c, h, doEval(content))
+      singleton.getAndSet(Some(s)) foreach { _.close() }
+      s
+  }
+
+  private def doEval(content: String): Stub = eval(s"""import zhongl.websockit.Stub
+        |new Stub {
+        |$content
+        |}
+      """.stripMargin)
+
 }

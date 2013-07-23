@@ -21,8 +21,8 @@ class StubDSLSpec extends FunSpec with ShouldMatchers {
         ($".name" =~ "jason") >> json"2"
       }
 
-      val e = evaluating { s.receive("""{"age":1}""") } should produce[InvalidPathException]
-      e.getMessage should be("""invalid path: ".name" """)
+      (evaluating { s.receive("""{"age":1}""") } should produce[InvalidPathException])
+        .getMessage should be("""invalid path: ".name" """)
     }
 
     it("should complain non-json-object") {
@@ -30,24 +30,20 @@ class StubDSLSpec extends FunSpec with ShouldMatchers {
         ($".name" =~ "jason") >> json"2"
       }
 
-      val e = evaluating { s.receive("""1""") } should produce[IllegalArgumentException]
-      e.getMessage should be("""1 is not a json object""")
+      (evaluating { s.receive("""1""") } should produce[IllegalArgumentException])
+        .getMessage should be("""1 is not a json object""")
     }
 
     it("should get array element") {
-      val s = new Stub {
+      new Stub {
         ($".[0]" =~ 1) >> json"2"
-      }
-
-      s.receive("[1]") should be("2")
+      } receive "[1]" should be("2")
     }
 
     it("should support regex") {
-      val s = new Stub {
+      new Stub {
         ($".name" =* """\w+""") >> json"""{"name":"${$".name"}"}"""
-      }
-
-      s.receive("""{"name":"allen"}""") should be("""{"name":"allen"}""")
+      } receive """{"name":"allen"}""" should be("""{"name":"allen"}""")
     }
 
     it("should support composed filters") {
@@ -57,6 +53,12 @@ class StubDSLSpec extends FunSpec with ShouldMatchers {
 
       s.receive("""{"name":"allen"}""") should be("ok")
       s.receive("""{"age":30}""") should be("ok")
+    }
+
+    it("should echo input") {
+      new Stub {
+        (() => true) >> in
+      } receive "hi" should be("hi")
     }
   }
 }

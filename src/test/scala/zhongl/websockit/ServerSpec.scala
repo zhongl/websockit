@@ -31,13 +31,10 @@ class ServerSpec extends FunSpec with ShouldMatchers with BeforeAndAfterAll {
       queue.contains(classOf[CloseWebSocketFrame]) should be(true)
     }
 
-    it("should stub an echo server as default") {
+    it("should stub real server as customized") {
       Client.drive(new URI("ws://localhost:12306/websocket"), "hi") should be("hi")
-    }
-
-    it("should stub a real stub server as customized") {
-      Http("localhost", 12306).post("/stub", "(_ => true) => (s => hello)")
-      Client.drive(new URI("ws://localhost:12306/websocket"), "hi") should be("hello")
+      Http("localhost", 12306).post("/stub", """($".k" =~ "v") >> json"ok" """)
+      Client.drive(new URI("ws://localhost:12306/websocket"), """{"k":"v"}""") should be("ok")
     }
 
     it("should get stub definition") {
