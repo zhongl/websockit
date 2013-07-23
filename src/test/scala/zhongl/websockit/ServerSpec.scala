@@ -36,7 +36,7 @@ class ServerSpec extends FunSpec with ShouldMatchers with BeforeAndAfterAll {
     }
 
     it("should stub a real stub server as customized") {
-      Http("localhost",12306).post("/stub","(_ => true) => (s => hello)")
+      Http("localhost", 12306).post("/stub", "(_ => true) => (s => hello)")
       Client.drive(new URI("ws://localhost:12306/websocket"), "hi") should be("hello")
     }
 

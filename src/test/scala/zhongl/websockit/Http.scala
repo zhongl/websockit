@@ -1,7 +1,7 @@
 package zhongl.websockit
 
-import java.util.concurrent.{TimeoutException, TimeUnit, SynchronousQueue}
-import io.netty.channel.{ChannelInitializer, ChannelHandlerContext, SimpleChannelInboundHandler}
+import java.util.concurrent.{ TimeoutException, TimeUnit, SynchronousQueue }
+import io.netty.channel.{ ChannelInitializer, ChannelHandlerContext, SimpleChannelInboundHandler }
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpVersion._
 import io.netty.handler.codec.http.HttpMethod._

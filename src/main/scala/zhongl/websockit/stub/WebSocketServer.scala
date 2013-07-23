@@ -77,6 +77,7 @@ class WebSocketServer(
       request match {
         case GetIndex()         =>
         case PostIndex()        =>
+        // TODO drive message send
         case DecodeNotSuccess() => sendThenClose(response(BAD_REQUEST))
         case MethodNotAllowed() => sendThenClose(response(METHOD_NOT_ALLOWED))
         case _                  => handshake(request)

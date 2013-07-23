@@ -3,7 +3,7 @@ package zhongl.websockit
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler, ChannelInitializer}
+import io.netty.channel.{ ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler, ChannelInitializer }
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpVersion._
@@ -18,9 +18,9 @@ import scala.Some
 import java.util.concurrent.atomic.AtomicReference
 
 class Server(port: Int) {
-  private lazy val log    = LoggerFactory.getLogger(classOf[Server])
-  private lazy val utf8   = Charset.forName("UTF-8")
-  private lazy val boss   = new NioEventLoopGroup()
+  private lazy val log = LoggerFactory.getLogger(classOf[Server])
+  private lazy val utf8 = Charset.forName("UTF-8")
+  private lazy val boss = new NioEventLoopGroup()
   private lazy val worker = new NioEventLoopGroup()
 
   private val consoleRef = new AtomicReference[Option[Console]](None)
@@ -56,7 +56,7 @@ class Server(port: Int) {
     private var websoclet: Option[WebSoclet] = None
 
     def channelRead0(c: ChannelHandlerContext, m: AnyRef): Unit = m match {
-      case r: FullHttpRequest => handleHttpRequest(r, c)
+      case r: FullHttpRequest => handleHttpRequest(c, r)
       case f: WebSocketFrame  => websoclet map { _.receive(f) }
     }
 
@@ -66,9 +66,7 @@ class Server(port: Int) {
       ctx.close()
     }
 
-    private def handleWebSocketFrame(frame: WebSocketFrame, context: ChannelHandlerContext): Unit = {}
-
-    private def handleHttpRequest(implicit r: FullHttpRequest, c: ChannelHandlerContext): Unit = r match {
+    private def handleHttpRequest(implicit c: ChannelHandlerContext, r: FullHttpRequest): Unit = r match {
       case Get(path)           => get(path)
       case Post(path, content) => post(path, content)
       case _                   => throw new UnsupportedOperationException(s"${r.getMethod} ${r.getUri}")
