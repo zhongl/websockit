@@ -4,7 +4,7 @@ import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
 import com.jayway.jsonpath.InvalidPathException
 
-class StubDSLSpec extends FunSpec with ShouldMatchers {
+class StubSpec extends FunSpec with ShouldMatchers {
   describe("Stub DSL") {
     it("should create stub with customized rules") {
       val s = new Stub {

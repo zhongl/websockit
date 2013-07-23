@@ -113,7 +113,7 @@ object Session {
       s
   }
 
-  private def doEval(content: String): Stub = eval( s"""import zhongl.websockit.Stub
+  private def doEval(content: String): Stub = eval(s"""import zhongl.websockit.Stub
         |new Stub {
         |$content
         |}
