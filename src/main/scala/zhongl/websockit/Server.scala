@@ -62,8 +62,7 @@ class Server(port: Int) {
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-      log.error("close channel from " + ctx.channel().remoteAddress(), cause)
-      // TODO log to console panel
+      error("close channel from " + ctx.channel().remoteAddress(), cause)
       ctx.close()
     }
 
