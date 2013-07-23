@@ -1,6 +1,7 @@
 package zhongl.websockit
 
-import com.jayway.jsonpath.JsonPath
+import com.jayway.jsonpath.{ InvalidPathException, JsonPath }
+import com.jayway.jsonpath
 
 class Stub {
 
@@ -9,7 +10,15 @@ class Stub {
   @volatile var receive: PartialFunction[String, String] = { case s => s }
 
   implicit class JsonPathRead(sc: StringContext) extends AnyRef {
-    def $[T](args: Any*) = () => JsonPath.compile('$' + sc.s(args: _*)).read[T](in)
+    def $[T](args: Any*) = () => {
+      val expr = sc.s(args: _*)
+      try {
+        JsonPath.compile('$' + expr).read[T](in)
+      } catch {
+        case t: InvalidPathException     => throw new jsonpath.InvalidPathException(s"""${t.getMessage}: "$expr" """)
+        case t: IllegalArgumentException => throw new IllegalArgumentException(s"$in is not a json object")
+      }
+    }
   }
 
   implicit class JsonStringHelper(sc: StringContext) extends AnyRef {

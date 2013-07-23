@@ -2,6 +2,7 @@ package zhongl.websockit
 
 import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
+import com.jayway.jsonpath.InvalidPathException
 
 class StubDSLSpec extends FunSpec with ShouldMatchers {
   describe("Stub DSL") {
@@ -13,6 +14,32 @@ class StubDSLSpec extends FunSpec with ShouldMatchers {
 
       s.receive("""{"name":"allen", "seq":1}""") should be("1")
       s.receive("""{"name":"jason"}""") should be("2")
+    }
+
+    it("should complain invalid path") {
+      val s = new Stub {
+        ($".name" := "jason") >> json"2"
+      }
+
+      val e = evaluating { s.receive("""{"age":1}""") } should produce[InvalidPathException]
+      e.getMessage should be("""invalid path: ".name" """)
+    }
+
+    it("should complain non-json-object") {
+      val s = new Stub {
+        ($".name" := "jason") >> json"2"
+      }
+
+      val e = evaluating { s.receive("""1""") } should produce[IllegalArgumentException]
+      e.getMessage should be("""1 is not a json object""")
+    }
+
+    it("should get array element") {
+      val s = new Stub {
+        ($".[0]" := 1) >> json"2"
+      }
+
+      s.receive("[1]") should be("2")
     }
   }
 }
