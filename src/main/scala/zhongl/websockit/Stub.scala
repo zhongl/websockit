@@ -32,7 +32,7 @@ class Stub {
 
   implicit class Read(f: () => _) {
 
-    def :=[T](v: T) = () => f() == v
+    def =~[T](v: T) = () => f() == v
 
     def >(v: Long) = () => f().asInstanceOf[Long] > v
 
@@ -42,14 +42,17 @@ class Stub {
 
     def <(v: Int) = () => f().asInstanceOf[Int] < v
 
-    def ~=(v: String) = () => f().asInstanceOf[String] matches v
+    def =*(v: String) = () => f().asInstanceOf[String] matches v
   }
 
   implicit class Composable(f: Filter) {
 
-    def ||(h: Filter): Filter = { () => f() || h() }
+    def ||(h: Filter) = () => {
+      val b = try { f() } catch { case t: Throwable => false }
+      b || h()
+    }
 
-    def &&(h: Filter): Filter = { () => f() && h() }
+    def &&(h: Filter) = () => f() && h()
 
     def >>(s: => String) = {
       val f: PartialFunction[String, String] = { case o @ Extract() => s }
