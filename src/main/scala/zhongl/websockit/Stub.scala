@@ -5,7 +5,7 @@ import com.jayway.jsonpath
 
 class Stub {
 
-  @volatile var in = ""
+  @volatile private var in = ""
 
   @volatile var receive: PartialFunction[String, String] = { case s => s }
 

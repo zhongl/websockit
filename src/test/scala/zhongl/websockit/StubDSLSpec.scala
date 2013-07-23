@@ -52,7 +52,7 @@ class StubDSLSpec extends FunSpec with ShouldMatchers {
 
     it("should support composed filters") {
       val s = new Stub {
-        ($".name" =* "allen" || $".age" > 25) >> json"ok"
+        ($".name" =~ "allen" || $".age" > 25) >> json"ok"
       }
 
       s.receive("""{"name":"allen"}""") should be("ok")
