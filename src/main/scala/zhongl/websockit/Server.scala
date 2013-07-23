@@ -3,7 +3,7 @@ package zhongl.websockit
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.channel.{ ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler, ChannelInitializer }
+import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler, ChannelInitializer}
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpVersion._
@@ -18,9 +18,9 @@ import scala.Some
 import java.util.concurrent.atomic.AtomicReference
 
 class Server(port: Int) {
-  private lazy val log = LoggerFactory.getLogger(classOf[Server])
-  private lazy val utf8 = Charset.forName("UTF-8")
-  private lazy val boss = new NioEventLoopGroup()
+  private lazy val log    = LoggerFactory.getLogger(classOf[Server])
+  private lazy val utf8   = Charset.forName("UTF-8")
+  private lazy val boss   = new NioEventLoopGroup()
   private lazy val worker = new NioEventLoopGroup()
 
   private val consoleRef = new AtomicReference[Option[Console]](None)
@@ -70,15 +70,34 @@ class Server(port: Int) {
 
     private def handleHttpRequest(implicit r: FullHttpRequest, c: ChannelHandlerContext): Unit = r match {
       case Get(path)           => get(path)
-      case Post(path, content) =>
+      case Post(path, content) => post(path, content)
       case _                   => throw new UnsupportedOperationException(s"${r.getMethod} ${r.getUri}")
     }
 
+    private def post(path: String, content: String)(implicit c: ChannelHandlerContext): Unit = path match {
+      case "/stub"  => response(updateStub(content))
+      case "/drive" =>
+    }
+
     private def get(path: String)(implicit c: ChannelHandlerContext, r: FullHttpRequest): Unit = path match {
-      case "/stub"      => response(c, ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
+      case "/stub"      => response(ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
       case "/console"   => websoclet = Console(c, r) map { set(consoleRef, _) }
       case "/websocket" => websoclet = Session(c, r) map { set(sessionRef, _) }
-      case _            => response(c, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
+      case _            => response(new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
+    }
+
+    private def updateStub(content: String) = {
+      val log = consoleRef.get foreach (_: Console => Unit)
+
+      log { _.info(s"Update stub \n$content\n") }
+      try {
+        sessionRef.get map { _.upgrade(content) }
+        new DefaultFullHttpResponse(HTTP_1_1, OK)
+      } catch {
+        case t: Throwable =>
+          log { _.error(t.getMessage) }
+          new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST)
+      }
     }
 
     private def set[T <: WebSoclet](ref: AtomicReference[Option[T]], cur: T): T = {
@@ -93,7 +112,7 @@ class Server(port: Int) {
       r
     }
 
-    private def response(c: ChannelHandlerContext, r: FullHttpResponse): Unit = {
+    private def response(r: FullHttpResponse)(implicit c: ChannelHandlerContext): Unit = {
       c.writeAndFlush(r).addListener(ChannelFutureListener.CLOSE)
     }
 

@@ -23,7 +23,7 @@ object Runner {
       |
       |new WebSocketServer(port = 12306, path = "/ws") {
       |  def receive = {
-      |    case Text(json) if $jsonPath => Text(s$quotes{$result}$quotes)
+      |    case Text(json) if $jsonPath => Text(m$quotes{$result}$quotes)
       |  }
       |}
       |

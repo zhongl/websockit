@@ -1,19 +1,26 @@
 package zhongl.websockit
 
-import java.util.concurrent.{ TimeoutException, TimeUnit, SynchronousQueue }
-import io.netty.channel.{ ChannelInitializer, ChannelHandlerContext, SimpleChannelInboundHandler }
+import java.util.concurrent.{TimeoutException, TimeUnit, SynchronousQueue}
+import io.netty.channel.{ChannelInitializer, ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
+import io.netty.handler.codec.http.HttpVersion._
+import io.netty.handler.codec.http.HttpMethod._
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.socket.nio.NioSocketChannel
 import java.nio.charset.Charset
+import io.netty.buffer.Unpooled
 
 case class Http(host: String, port: Int) {
+  private val utf8 = Charset.forName("UTF-8")
 
   private lazy val queue = new SynchronousQueue[AnyRef]()
 
-  def get(path: String) = sendAndWait(new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, path))
+  def post(path: String, content: String): Unit =
+    sendAndWait(new DefaultFullHttpRequest(HTTP_1_1, POST, path, Unpooled.copiedBuffer(content, utf8)))
+
+  def get(path: String) = sendAndWait(new DefaultFullHttpRequest(HTTP_1_1, GET, path))
 
   private def handler = new SimpleChannelInboundHandler[FullHttpResponse]() {
     def channelRead0(ctx: ChannelHandlerContext, msg: FullHttpResponse) {
@@ -45,7 +52,7 @@ case class Http(host: String, port: Int) {
       channel.writeAndFlush(request)
       val rst = queue.poll(3, TimeUnit.SECONDS) match {
         case t: Throwable        => throw t
-        case r: FullHttpResponse => r.getStatus.code() -> r.content().retain().toString(Charset.forName("UTF-8"))
+        case r: FullHttpResponse => r.getStatus.code() -> r.content().retain().toString(utf8)
         case null                => throw new TimeoutException()
       }
       channel.closeFuture().sync()

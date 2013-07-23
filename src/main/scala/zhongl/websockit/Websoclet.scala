@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.FullHttpRequest
 import io.netty.handler.codec.http.HttpHeaders.Names._
 import io.netty.handler.codec.http.websocketx._
+import com.twitter.util.Eval
 
 abstract class WebSoclet {
 
@@ -37,9 +38,14 @@ object WebSoclet {
 }
 
 class Console(val c: ChannelHandlerContext, val h: WebSocketServerHandshaker) extends WebSoclet {
+
   c.writeAndFlush(new TextWebSocketFrame("WebSockit console is ready!"))
 
   def log(m: String) = c.writeAndFlush(new TextWebSocketFrame(m))
+
+  def info(m: String) = log(s"INFO : $m")
+
+  def error(m: String) = log(s"ERROR: $m")
 }
 
 object Console {
@@ -47,6 +53,21 @@ object Console {
 }
 
 class Session(val c: ChannelHandlerContext, val h: WebSocketServerHandshaker) extends WebSoclet {
+  private val eval = new Eval()
+
+  @volatile private var stub: PartialFunction[String, String] = _
+
+  def upgrade(content: String): Unit = {
+
+  }
+
+  override def receive = {
+    case f: PingWebSocketFrame  => c.writeAndFlush(new PongWebSocketFrame(f.content().retain()))
+    case f: CloseWebSocketFrame => h.close(c.channel(), f.retain())
+    case f: PongWebSocketFrame  =>
+    case f: TextWebSocketFrame  => c.writeAndFlush(new TextWebSocketFrame(stub(f.retain().text())))
+    case f                      => c.writeAndFlush(f.retain()) // echo frame
+  }
 }
 
 object Session {
