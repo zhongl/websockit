@@ -5,14 +5,14 @@ import org.scalatest.matchers.ShouldMatchers
 
 class StubDSLSpec extends FunSpec with ShouldMatchers {
   describe("Stub DSL") {
-    it("should eval to Filter") {
-      ($".name" := "allen")("""{"name":"allen"}""") should be(true)
+    it("should create stub with customized rules") {
+      val s = new Stub {
+        ($".name" := "jason") >> json"2"
+        ($".name" := "allen") >> json"${$".seq"}"
+      }
 
-      $".age" > 26 && $".age" < 50 apply """{"age":16}""" should be(false)
-    }
-
-    it("should eval to stub") {
-      ($".name" := "allen") >> json"result" apply """{"name":"allen"}""" should be("result")
+      s.receive("""{"name":"allen", "seq":1}""") should be("1")
+      s.receive("""{"name":"jason"}""") should be("2")
     }
   }
 }
