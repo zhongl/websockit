@@ -42,6 +42,17 @@ class ServerSpec extends FunSpec with ShouldMatchers with BeforeAndAfterAll {
       content should be("(_ => true) => (s => s)")
     }
 
+    it("should drive message to client") {
+      val queue = new SynchronousQueue[AnyRef]()
+      Client.stub(new URI("ws://localhost:12306/websocket")) {
+        case f: TextWebSocketFrame => queue.put(f.retain().text()); Some(new CloseWebSocketFrame())
+        case f                     => queue.put(f.retain()); Some(new CloseWebSocketFrame())
+      }
+      Thread.sleep(500L)
+      Http("localhost", 12306).post("/drive", "hello")
+      queue.poll(3, TimeUnit.SECONDS) should be("hello")
+    }
+
   }
 
   var s: Server = _

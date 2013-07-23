@@ -73,28 +73,27 @@ class Server(port: Int) {
     }
 
     private def post(path: String, content: String)(implicit c: ChannelHandlerContext): Unit = path match {
-      case "/stub"  => response(updateStub(content))
-      case "/drive" =>
+      case "/stub"  => response(stub(content))
+      case "/drive" => response(drive(content))
     }
 
     private def get(path: String)(implicit c: ChannelHandlerContext, r: FullHttpRequest): Unit = path match {
       case "/stub"      => response(ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
       case "/console"   => websoclet = Console(c, r)
-      case "/websocket" => websoclet = Session(c, r)
+      case "/websocket" => info(s"Session connected from ${c.channel().remoteAddress()}"); websoclet = Session(c, r)
       case _            => response(new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
     }
 
-    private def updateStub(content: String) = {
+    private def drive(content: String): FullHttpResponse = {
+      info(s"Drive message\n$content")
+      Session.send(content)
+      new DefaultFullHttpResponse(HTTP_1_1, OK)
+    }
 
+    private def stub(content: String) = {
       info(s"Update stub \n$content\n")
-      try {
-        Session.update(content)
-        new DefaultFullHttpResponse(HTTP_1_1, OK)
-      } catch {
-        case t: Throwable =>
-          error("Failed to update stub, ", t)
-          new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST)
-      }
+      Session.update(content)
+      new DefaultFullHttpResponse(HTTP_1_1, OK)
     }
 
     private def set[T <: WebSoclet](ref: AtomicReference[Option[T]], cur: T): T = {

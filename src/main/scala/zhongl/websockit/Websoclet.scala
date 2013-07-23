@@ -62,8 +62,12 @@ object Console {
 }
 
 class Session(val c: ChannelHandlerContext,
-              val h: WebSocketServerHandshaker,
-              @volatile var stub: Stub) extends WebSoclet {
+    val h: WebSocketServerHandshaker,
+    @volatile var stub: Stub) extends WebSoclet {
+
+  def send(content: String): Unit = {
+    c.writeAndFlush(new TextWebSocketFrame(content))
+  }
 
   override def receive = {
     case f: PingWebSocketFrame  => c.writeAndFlush(new PongWebSocketFrame(f.content().retain()))
@@ -100,6 +104,8 @@ object Session {
   private val singleton = new AtomicReference[Option[Session]](None)
 
   @volatile var content = defaultContent
+
+  def send(content: String) = singleton.get() foreach { _.send(content) }
 
   def update(stub: String) = {
     content = stub
