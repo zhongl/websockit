@@ -23,7 +23,8 @@ class Server(port: Int) {
   private lazy val boss = new NioEventLoopGroup()
   private lazy val worker = new NioEventLoopGroup()
 
-  private val consoleRef = new AtomicReference[Console]()
+  private val consoleRef = new AtomicReference[Option[Console]](None)
+  private val sessionRef = new AtomicReference[Option[Session]](None)
 
   def run() = try {
     new ServerBootstrap()
@@ -56,7 +57,7 @@ class Server(port: Int) {
 
     def channelRead0(c: ChannelHandlerContext, m: AnyRef): Unit = m match {
       case r: FullHttpRequest => handleHttpRequest(r, c)
-      case f: WebSocketFrame  => websoclet map { _.receive }
+      case f: WebSocketFrame  => websoclet map { _.receive(f) }
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
@@ -74,14 +75,15 @@ class Server(port: Int) {
     }
 
     private def get(path: String)(implicit c: ChannelHandlerContext, r: FullHttpRequest): Unit = path match {
-      case "/stub"    => response(c, ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
-      case "/console" => websoclet = Console(c, r) map { set(consoleRef, _) }
-      case _          => response(c, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
+      case "/stub"      => response(c, ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
+      case "/console"   => websoclet = Console(c, r) map { set(consoleRef, _) }
+      case "/websocket" => websoclet = Session(c, r) map { set(sessionRef, _) }
+      case _            => response(c, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND))
     }
 
-    private def set[T <: WebSoclet](ref: AtomicReference[T], cur: T): T = {
-      val pre = ref.getAndSet(cur)
-      if (pre != null) pre.close("Close by the other one connected.")
+    private def set[T <: WebSoclet](ref: AtomicReference[Option[T]], cur: T): T = {
+      val pre = ref.getAndSet(Some(cur))
+      pre map { _.close("Close by the other one connected.") }
       cur
     }
 

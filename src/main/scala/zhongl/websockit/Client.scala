@@ -20,8 +20,9 @@ object Client {
     val queue = new SynchronousQueue[AnyRef]()
 
     val (channel, handshaker) = connect(uri) {
-      case f: TextWebSocketFrame => queue.put(f); None
-      case f                     => queue.put(new IllegalStateException(s"Unsupport frame: $f")); None
+      case f: TextWebSocketFrame  => queue.put(f.retain()); None
+      case f: CloseWebSocketFrame => Some(f.retain())
+      case f                      => None
     }
 
     try {
@@ -43,6 +44,8 @@ object Client {
   }
 
   private def connect(uri: URI)(r: Receive) = {
+
+    require(uri.getScheme == "ws", "Protocol should be ws:// .")
 
     val g = new NioEventLoopGroup(1, new ThreadFactory {
       def newThread(r: Runnable) = new Thread(r, "Client-EventLoopGroup")

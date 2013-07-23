@@ -31,6 +31,10 @@ class ServerSpec extends FunSpec with ShouldMatchers with BeforeAndAfterAll {
       queue.contains(classOf[CloseWebSocketFrame]) should be(true)
     }
 
+    it("should stub an echo server") {
+      Client.drive(new URI("ws://localhost:12306/websocket"), "hi") should be("hi")
+    }
+
     it("should get stub definition") {
       val (_, content) = Http("localhost", 12306).get("/stub")
       content should be("(_ => true) => (s => s)")

@@ -4,10 +4,8 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.FullHttpRequest
 import io.netty.handler.codec.http.HttpHeaders.Names._
 import io.netty.handler.codec.http.websocketx._
-import java.util.concurrent.atomic.AtomicBoolean
 
 abstract class WebSoclet {
-  private val closed = new AtomicBoolean(false)
 
   def h: WebSocketServerHandshaker
 
@@ -15,14 +13,12 @@ abstract class WebSoclet {
 
   def receive: PartialFunction[WebSocketFrame, Unit] = {
     case f: PingWebSocketFrame  => c.writeAndFlush(new PongWebSocketFrame(f.content().retain()))
-    case f: CloseWebSocketFrame => if (closed.get) c.close() else h.close(c.channel(), f.retain())
+    case f: CloseWebSocketFrame => h.close(c.channel(), f.retain())
     case f: PongWebSocketFrame  =>
     case f                      => c.writeAndFlush(f.retain()) // echo frame
   }
 
-  def close(reason: String = "Unknow reason.") = if (closed.compareAndSet(false, true)) {
-    h.close(c.channel(), new CloseWebSocketFrame(1008, reason))
-  }
+  def close(reason: String = "Unknow reason.") = h.close(c.channel(), new CloseWebSocketFrame(1008, reason))
 }
 
 object WebSoclet {
@@ -48,4 +44,11 @@ class Console(val c: ChannelHandlerContext, val h: WebSocketServerHandshaker) ex
 
 object Console {
   def apply(c: ChannelHandlerContext, r: FullHttpRequest) = WebSoclet.handshake(c, r) map { new Console(c, _) }
+}
+
+class Session(val c: ChannelHandlerContext, val h: WebSocketServerHandshaker) extends WebSoclet {
+}
+
+object Session {
+  def apply(c: ChannelHandlerContext, r: FullHttpRequest) = WebSoclet.handshake(c, r) map { new Session(c, _) }
 }
