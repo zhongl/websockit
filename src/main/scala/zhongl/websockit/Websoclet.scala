@@ -69,12 +69,14 @@ class Session(val c: ChannelHandlerContext,
     case f: PingWebSocketFrame  => c.writeAndFlush(new PongWebSocketFrame(f.content().retain()))
     case f: CloseWebSocketFrame => h.close(c.channel(), f.retain())
     case f: PongWebSocketFrame  =>
-    case f: TextWebSocketFrame  =>
-      val in = f.retain().text()
-      Console.info(s">>>\n$in")
-      val out = stub.receive(in)
-      Console.info(s"<<<\n$out")
-      c.writeAndFlush(new TextWebSocketFrame(out))
+    case f: TextWebSocketFrame  => c.writeAndFlush(new TextWebSocketFrame(handle(f.retain().text())))
+  }
+
+  private def handle(in: String) = {
+    Console.info(s">>>\n$in")
+    val out = stub.receive(in)
+    Console.info(s"<<<\n$out")
+    out
   }
 }
 
