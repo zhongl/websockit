@@ -3,7 +3,7 @@ package zhongl.websockit
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.channel.{ ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler, ChannelInitializer }
+import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler, ChannelInitializer}
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpVersion._
@@ -18,9 +18,9 @@ import scala.Some
 import java.util.concurrent.atomic.AtomicReference
 
 class Server(port: Int) {
-  private lazy val log = LoggerFactory.getLogger(classOf[Server])
-  private lazy val utf8 = Charset.forName("UTF-8")
-  private lazy val boss = new NioEventLoopGroup()
+  private lazy val log    = LoggerFactory.getLogger(classOf[Server])
+  private lazy val utf8   = Charset.forName("UTF-8")
+  private lazy val boss   = new NioEventLoopGroup()
   private lazy val worker = new NioEventLoopGroup()
 
   def run() = try {
@@ -54,7 +54,7 @@ class Server(port: Int) {
 
     def channelRead0(c: ChannelHandlerContext, m: AnyRef): Unit = m match {
       case r: FullHttpRequest => handleHttpRequest(c, r)
-      case f: WebSocketFrame => try { websoclet map { _.receive(f) } } catch {
+      case f: WebSocketFrame  => try {websoclet map { _.receive(f) }} catch {
         case t: Throwable =>
           c.writeAndFlush(f.retain())
           error("Invalid WebSocket frame", t)
@@ -136,3 +136,14 @@ class Server(port: Int) {
 
 }
 
+object Server {
+  def main(args: Array[String]): Unit = {
+    val s = args match {
+      case Array()     => new Server(12306).run()
+      case Array(port) => new Server(port.toInt).run()
+      case _           => throw new IllegalArgumentException("Usage: cmd [port]")
+    }
+
+    sys.addShutdownHook(s.shutdown)
+  }
+}
