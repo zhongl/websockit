@@ -20,10 +20,6 @@
       margin: 0px;
     }
 
-    form {
-      margin: 0px;
-    }
-
     .column {
       display: inline-block;
       box-sizing: border-box;
@@ -35,23 +31,17 @@
 <body>
 
 <div class="column  pull-left">
-  <form method="post" action="stub/:path">
-    <textarea rows="5" id="stub"> ($".command" == "MESSAGE" && $".to" == "allen") => json"""
-      {"command":"ACK", "seq":${ $".seq" }, "code":200}
-      """ </textarea>
-  </form>
+  <textarea id="stub"> </textarea>
+
   <div class="splitter"></div>
-  <form method="post" action="drive/:path">
-    <textarea rows="5" id="drive">{"command":"ACK", "seq":1, "code":200} </textarea>
-  </form>
+  <textarea id="drive">{"command":"ACK", "seq":1, "code":200} </textarea>
 </div>
 <div class="column pull-right">
-  <textarea rows="5" id="console">INFO : WebSocket connected.
-  </textarea>
+  <textarea id="console"></textarea>
 </div>
 <script language="javascript">
   $(function () {
-    var stub, drive, console;
+    var stub, drive, console, ws;
 
     var splitter = parseInt($("div.splitter").css("padding")) * 2;
 
@@ -67,7 +57,9 @@
 
     function updateStub(cm) {}
 
-    function driveMessage(cm) {}
+    function driveMessage(cm) {
+
+    }
 
     function layout() {
       $(".column").css("width", width());
@@ -75,6 +67,13 @@
       drive.setSize(width(), driveHeight());
       console.setSize(width(), consoleHeight());
     }
+
+    function log(text) { console.replaceSelection(text + "\n", "end") }
+
+    function info(text) { log("INFO : " + text); }
+
+    function error(text) { log("ERROR : " + text); }
+
 
     stub = CodeMirror.fromTextArea($("#stub")[0], {
       lineNumbers      : true,
@@ -102,10 +101,16 @@
       theme   : "ambiance"
     });
 
-    $.get("/stub"), function (data) {
+    $.get("/stub", function (data) {
       stub.readOnly = false;
       stub.setValue(data);
-    }
+    });
+
+    ws = new WebSocket("/console")
+    ws.onclose = function () { info("Connection closed."); };
+    ws.onopen = function () { info("Connection opened.");};
+    ws.onerror = function (e) { error("ws error: " + e.data);};
+    ws.onmessage = function (e) { info(e.data); };
 
     $(window).resize(layout);
 

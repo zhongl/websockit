@@ -46,7 +46,8 @@
     function width() { return $(window).width() / 2 - 2; }
 
     function send(cm) {
-      var m = cm.getValue();
+      var m = cm.getSelection();
+      if(m.length === 0) m = cm.getValue();
       info(">>>\n" + m);
       ws.send(m);
     }

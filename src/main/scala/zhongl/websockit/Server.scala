@@ -78,7 +78,7 @@ class Server(port: Int) {
     }
 
     private def get(path: String)(implicit c: ChannelHandlerContext, r: FullHttpRequest): Unit = path match {
-      case "/stub"      => response(ok("text/plaint; charset=UTF-8", "(_ => true) => (s => s)"))
+      case "/stub"      => response(ok("text/plaint; charset=UTF-8", Session.content))
       case "/console"   => websoclet = Console(c, r)
       case "/websocket" => info(s"Session connected from ${c.channel().remoteAddress()}"); websoclet = Session(c, r)
       case "/"          => file("/index.html")
