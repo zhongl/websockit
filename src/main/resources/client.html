@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>WebSockit Client</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="bootstrap.min.css"/>
+  <link rel="stylesheet" type="text/css" href="codemirror.css"/>
+  <link rel="stylesheet" type="text/css" href="ambiance.css"/>
+  <script src="jquery.min.js"></script>
+  <script src="codemirror.js"></script>
+  <script src="javascript.js"></script>
+  <script src="closebrackets.js"></script>
+  <script src="matchbrackets.js"></script>
+  <script src="shell.js"></script>
+  <style type="text/css">
+    .column {
+      display: inline-block;
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+    }
+
+    #uri {
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="column  pull-left">
+  <input class="input-block-level" id="uri" value="ws://localhost:12306/websocket">
+  <textarea id="editor">// Cmd-Enter: send select text or all.
+    {"command":"ACK", "seq":1, "code":200} </textarea>
+</div>
+<div class="column pull-right">
+  <textarea id="console"></textarea>
+</div>
+<script language="javascript">
+  $(function () {
+    var editor, console, ws;
+
+    function height() {return $(window).height();}
+
+    function width() { return $(window).width() / 2 - 2; }
+
+    function send(cm) {
+      var m = cm.getValue();
+      info(">>>\n" + m);
+      ws.send(m);
+    }
+
+    function layout() {
+      $(".column").css("width", width());
+      editor.setSize(width(), height() - parseInt($("#uri").css("height")));
+      console.setSize(width(), height());
+    }
+
+    function log(text) { console.replaceSelection(text + "\n", "end") }
+
+    function info(text) { log("INFO : " + text); }
+
+    function error(text) { log("ERROR : " + text); }
+
+    editor = CodeMirror.fromTextArea($("#editor")[0], {
+      lineNumbers      : true,
+      tabSize          : 2,
+      autoCloseBrackets: true,
+      matchBrackets    : true,
+      theme            : "ambiance",
+      extraKeys        : { "Cmd-Enter": send }
+    });
+
+    console = CodeMirror.fromTextArea($("#console")[0], {
+      readOnly: true,
+      mode    : "text/x-sh",
+      theme   : "ambiance"
+    });
+
+    $("#uri").keydown(function (e) {
+      if (e.which === 13) {
+
+        ws = new WebSocket($("#uri").val())
+        ws.onclose = function () { info("Connection closed."); };
+        ws.onopen = function () { info("Connection opened.");};
+        ws.onerror = function (e) { error("ws error: " + e.data);};
+        ws.onmessage = function (e) { info("<<<\n" + e.data); };
+
+        $("#uri").attr("disabled", true);
+      }
+    });
+
+    $(window).resize(layout);
+
+    layout();
+  });
+</script>
+
+</body>
+</html>
