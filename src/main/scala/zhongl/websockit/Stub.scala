@@ -1,7 +1,6 @@
 package zhongl.websockit
 
 import com.jayway.jsonpath.{ InvalidPathException, JsonPath }
-import com.jayway.jsonpath
 
 class Stub {
 
@@ -26,7 +25,6 @@ class Stub {
       try {
         JsonPath.compile('$' + expr).read[T](in)
       } catch {
-        case t: InvalidPathException     => throw new jsonpath.InvalidPathException(s"""${t.getMessage}: "$expr" """)
         case t: IllegalArgumentException => throw new IllegalArgumentException(s"$in is not a json object")
       }
     }
@@ -41,25 +39,24 @@ class Stub {
 
   implicit class Read(f: () => _) {
 
-    def =~[T](v: T) = () => f() == v
+    def =~[T](v: T) = silent { f() == v }
 
-    def >(v: Long) = () => f().asInstanceOf[Long] > v
+    def >(v: Long) = silent { f().asInstanceOf[Long] > v }
 
-    def <(v: Long) = () => f().asInstanceOf[Long] < v
+    def <(v: Long) = silent { f().asInstanceOf[Long] < v }
 
-    def >(v: Int) = () => f().asInstanceOf[Int] > v
+    def >(v: Int) = silent { f().asInstanceOf[Int] > v }
 
-    def <(v: Int) = () => f().asInstanceOf[Int] < v
+    def <(v: Int) = silent { f().asInstanceOf[Int] < v }
 
-    def =*(v: String) = () => f().asInstanceOf[String] matches v
+    def =*(v: String) = silent { f().asInstanceOf[String] matches v }
+
+    private def silent(g: => Boolean) = () => try { g } catch { case _: InvalidPathException => false }
   }
 
   implicit class Composable(f: Filter) {
 
-    def ||(h: Filter) = () => {
-      val b = try { f() } catch { case t: Throwable => false }
-      b || h()
-    }
+    def ||(h: Filter) = () => f() || h()
 
     def &&(h: Filter) = () => f() && h()
 
