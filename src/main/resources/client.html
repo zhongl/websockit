@@ -32,7 +32,7 @@
 <div class="column  pull-left">
   <input class="input-block-level" id="uri" value="ws://localhost:12306/websocket">
   <textarea id="editor">// Cmd-Enter: send select text or all.
-    {"command":"ACK", "seq":1, "code":200} </textarea>
+{"to":"allen", "seq":1} </textarea>
 </div>
 <div class="column pull-right">
   <textarea id="console"></textarea>
@@ -47,7 +47,7 @@
 
     function send(cm) {
       var m = cm.getSelection();
-      if(m.length === 0) m = cm.getValue();
+      if (m.length === 0) m = cm.getValue();
       info(">>>\n" + m);
       ws.send(m);
     }
@@ -74,9 +74,8 @@
     });
 
     console = CodeMirror.fromTextArea($("#console")[0], {
-      readOnly: true,
-      mode    : "text/x-sh",
-      theme   : "ambiance"
+      mode     : "text/x-sh",
+      theme    : "ambiance"
     });
 
     $("#uri").keydown(function (e) {

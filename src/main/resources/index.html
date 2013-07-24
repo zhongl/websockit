@@ -34,7 +34,7 @@
   <textarea id="stub"> </textarea>
 
   <div class="splitter"></div>
-  <textarea id="drive">{"command":"ACK", "seq":1, "code":200} </textarea>
+  <textarea id="drive">{"seq":2, "code":200} </textarea>
 </div>
 <div class="column pull-right">
   <textarea id="console"></textarea>
@@ -57,12 +57,12 @@
 
     function selection(cm) {
       var m = cm.getSelection();
-      if(m.length === 0) m = cm.getValue();
+      if (m.length === 0) m = cm.getValue();
       return m;
     }
 
     function updateStub(cm) {
-      $.post("/stub",selection(cm));
+      $.post("/stub", selection(cm));
     }
 
     function driveMessage(cm) {
@@ -104,21 +104,21 @@
     });
 
     console = CodeMirror.fromTextArea($("#console")[0], {
-      readOnly: true,
-      mode    : "text/x-sh",
-      theme   : "ambiance"
+      mode     : "text/x-sh",
+      extraKeys: {"Cmd-Delete": function (cm) {cm.setValue("");}},
+      theme    : "ambiance"
     });
 
     $.get("/stub", function (data) {
-      stub.setOption("readOnly",false);
+      stub.setOption("readOnly", false);
       stub.setValue(data);
     });
 
-    ws = new WebSocket("ws://"+$(location).attr("host") + "/console")
+    ws = new WebSocket("ws://" + $(location).attr("host") + "/console")
     ws.onclose = function () { info("Connection closed."); };
     ws.onopen = function () { info("Connection opened.");};
     ws.onerror = function (e) { error("ws error: " + e.data);};
-    ws.onmessage = function (e) { info(e.data); };
+    ws.onmessage = function (e) { log(e.data); };
 
     $(window).resize(layout);
 
