@@ -116,7 +116,6 @@ class Server(port: Int) {
 
     private def file(name: String)(implicit c: ChannelHandlerContext): Unit = {
       val url = getClass.getResource(name)
-
       try {
         val f = new File(url.getFile)
         val raf = new RandomAccessFile(f, "r")
@@ -124,8 +123,7 @@ class Server(port: Int) {
         setContentLength(r, raf.length())
         setContentType(r, f)
         c.write(r)
-        c.write(new DefaultFileRegion(raf.getChannel, 0, raf.length()))
-        c.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE)
+        c.writeAndFlush(new DefaultFileRegion(raf.getChannel, 0, raf.length())).addListener(ChannelFutureListener.CLOSE)
       } catch {
         case _: Throwable => response(failure(NOT_FOUND))
       }

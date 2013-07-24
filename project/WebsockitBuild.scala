@@ -29,7 +29,7 @@ object WebsockitBuild extends Build {
   )
 
   lazy val compileDependencies = Seq(
-    "io.netty" % "netty-codec-http" % "4.0.2.Final",
+    "io.netty" % "netty-codec-http" % "4.0.3.Final",
     "com.jayway.jsonpath" % "json-path" % "0.8.1",
     "ch.qos.logback" % "logback-classic" % "1.0.13",
     "com.twitter" %% "util-eval" % "6.3.7"
