@@ -1,4 +1,4 @@
-**websockit** provide stub and driver for testing WebSocket applicaiton.
+**websockit** provide stub and driver for testing [WebSocket](http://www.websocket.org) applicaiton.
 
 ## Install
 
@@ -14,53 +14,89 @@
 
 ## Usage
 
-- create a server config sample
+- start websockit server
 
 ```
 > cd websockit
 > sbt run
 ```
 
-- edit config sample for your needs, eg: An echo server like,
+- start websockit server at special port
+
+```
+> sbt "run 12306"
+```
+
+- `ws://localhost:12306/websocket` should be the url for your application to connect.
+
+- use workbench page, click <http://localhost:12306>
+    - left-top panel can update mock rules, press `Cmd+Enter` to submit
+    - left-bottom panel can drive a message to your websocket client, press `Cmd+Enter` to submit
+    - right panel is a console, which could display all the operation logs.
+
+
+## Mock Rule Syntax
+
+Suppose your application use [JSON](http://json.org) string base on [WebSocket](http://www.websocket.org).
+
+An mock rule contains `filter` and `result`, with `>>` in the middle, like:
+
+```
+($".to" =~ "allen" || $".seq" > 25) >> json"""{"code":200, "seq":${ $".seq" }}"""
+```
+
+it means, `{"to":"allen", "seq":26}` was sent to websockit, and then `{"code":200, "seq":26}` would return from websockit.
+
+### [JSONPath](http://goessner.net/articles/JsonPath/)
 
 ```scala
-import zhongl.websockit.dsl._
-import zhongl.websockit.stub._
+// {"name":"websockit"}
 
-new WebSocketServer(port = 12306, path = "/ws") {
-  def receive = {
-     case f => Some(f.retain)
-  }
-}
+$".name" // return "websockit"
 ```
 
-- start server
-
-```
-> sbt "run server"
-```
-
-
-## Real Config
+### Equal
 
 ```scala
-import zhongl.websockit.dsl._
-import zhongl.websockit.stub._
+// {"name":"websockit", "age": 1}
 
-new WebSocketServer(port = 12306, path = "/ws") {
-  def receive = {
-    case Text(json) if json ? "$.to" == "allen" => Text(s"""{"code":200, "uuid":${json ? "$.uuid"}}""")
-  }
-}
+$".name" =~ "websockit" // return true
+$".age" =~ 1            // return true
 ```
 
-run the config above, then send json ` {"to":"allen", "uuid":1}` to `ws://localhost:12306/ws`, you should get `{"code":200, "uuid":1}`
 
-### Tips
+### Regex
 
-- use [JSONPath](http://goessner.net/articles/JsonPath/) like `$.to`, for querying json value
-- use `s"""${var}"""` format text with variables
-- without head `s` a raw text/json like `"""[1,2,3]"""` would be return
+```scala
+// {"name":"websockit"}
+
+$".name" =* "\\w+"    // return true
+$".name" =* """\w+""" // same as above
+```
+
+### Great and Less
+
+```scala
+// {"age":"18"}
+
+$".age" > 17  // return true
+$".age" < 19  // return true
+```
+
+### `||` and `&&`
+
+```scala
+// {"name":"websockit", "age": 1}
+
+$".name" =~ "websockit" && $".age" > 0 // return true
+```
+
+### JSON result with variables
+
+```scala
+json"""{"code":200, "seq":${ $".seq" }}""" // ${ $".seq" } get `seq` value of the input json
+```
+
 
 
 ## Copyright and license
