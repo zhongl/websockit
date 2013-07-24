@@ -6,7 +6,7 @@
 
 - install [SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)
 
-- clone [websocket-kit](https://github.com/zhongl/websocket-kit)
+- clone [websockit](https://github.com/zhongl/websocket-kit)
 
 ```
 > git clone git@github.com:zhongl/websockit.git
