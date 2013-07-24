@@ -55,10 +55,18 @@
 
     function consoleHeight() { return (height()); }
 
-    function updateStub(cm) {}
+    function selection(cm) {
+      var m = cm.getSelection();
+      if(m.length === 0) m = cm.getValue();
+      return m;
+    }
+
+    function updateStub(cm) {
+      $.post("/stub",selection(cm));
+    }
 
     function driveMessage(cm) {
-
+      $.post("/drive", selection(cm));
     }
 
     function layout() {
@@ -102,11 +110,11 @@
     });
 
     $.get("/stub", function (data) {
-      stub.readOnly = false;
+      stub.setOption("readOnly",false);
       stub.setValue(data);
     });
 
-    ws = new WebSocket("/console")
+    ws = new WebSocket("ws://"+$(location).attr("host") + "/console")
     ws.onclose = function () { info("Connection closed."); };
     ws.onopen = function () { info("Connection opened.");};
     ws.onerror = function (e) { error("ws error: " + e.data);};

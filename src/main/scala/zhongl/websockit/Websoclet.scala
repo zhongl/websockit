@@ -88,14 +88,13 @@ object Session {
   private val defaultContent = {
     val tq = "\"\"\""
     val d = "$"
-    s"""
-      |// `=~` is equal, like: $d".key" =~ "value"
+    s"""// `=~` is equal, like: $d".key" =~ "value"
       |// `=*` is regex, like: $d".key" =* "v\\w+"
       |// `< or >` can use for number.
       |
       |// ($d".to" =~ "allen" || $d".seq" > 25) >> json$tq{"code":200, "seq":$d{ $d".seq" }}
       |
-      |(() => true) >> in  // echo input
+      |(() => true) >> in  // this is an echo example, feel free to delete it.
     """.stripMargin
   }
 

@@ -37,11 +37,6 @@ class ServerSpec extends FunSpec with ShouldMatchers with BeforeAndAfterAll {
       Client.drive(new URI("ws://localhost:12306/websocket"), """{"k":"v"}""") should be("ok")
     }
 
-    it("should get stub definition") {
-      val (_, content) = Http("localhost", 12306).get("/stub")
-      content should be("(_ => true) => (s => s)")
-    }
-
     it("should drive message to client") {
       val queue = new SynchronousQueue[AnyRef]()
       Client.stub(new URI("ws://localhost:12306/websocket")) {
