@@ -34,6 +34,7 @@
     - left-bottom panel can drive a message to your websocket client, press `Cmd+Enter` to submit
     - right panel is a console, which could display all the operation logs.
 
+![websockit-workbench](websockit.png)
 
 ## Mock Rule Syntax
 
