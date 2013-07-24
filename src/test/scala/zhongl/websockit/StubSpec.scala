@@ -64,6 +64,7 @@ class StubSpec extends FunSpec with ShouldMatchers {
     it("should do nothing") {
       new Stub {
         (() => true) >> nil
+        (() => true) >> $
       } receive "hi" should be(None)
     }
   }

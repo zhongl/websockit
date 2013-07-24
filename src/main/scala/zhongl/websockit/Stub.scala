@@ -8,11 +8,15 @@ class Stub {
   type Filter = () => Boolean
   type Receive = PartialFunction[String, Option[String]]
 
-  @volatile protected var in = ""
-
-  @volatile var receive: Receive = { case s => Some(s) }
-
   protected val nil: Option[String] = None
+
+  @volatile protected var in = ""
+  @volatile protected var cases = List.empty[Receive]
+
+  lazy val receive: Receive = {
+    val f: Receive = { case s => nil }
+    cases.reverse.foldRight(f) { (s, b) => s orElse b }
+  }
 
   protected def $ = Some(in)
 
@@ -60,8 +64,8 @@ class Stub {
     def &&(h: Filter) = () => f() && h()
 
     def >>(s: => Option[String]) = {
-      val f: PartialFunction[String, Option[String]] = { case o @ Extract() => s }
-      receive = f orElse receive
+      val f: Receive = { case o @ Extract() => s }
+      cases = f :: cases
     }
 
     object Extract {

@@ -93,7 +93,6 @@ object Session {
     s"""// Press Cmd+Enter to update mock rules.
       |
       |// ($d".to" =~ "allen" ) >> json$tq{"code":200, "seq":$d{ $d".seq" }}$tq
-      |// ($d".to" =~ "jason" ) >> nil
     """.stripMargin
   }
 
