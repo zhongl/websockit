@@ -17,7 +17,7 @@ object WebsockitBuild extends Build {
 
   lazy val commonSettings = Project.defaultSettings ++ scalariformSettings ++ Seq(
     organization := "me.zhongl",
-    version := "0.1-SNAPSHOT",
+    version := "0.1",
     scalaVersion := "2.10.2",
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize"),
     javacOptions ++= Seq("-target", "1.6", "-source", "1.6"),
