@@ -12,8 +12,8 @@ class StubSpec extends FunSpec with ShouldMatchers {
         ($".name" =~ "allen") >> json"${$".seq"}"
       }
 
-      s.receive("""{"name":"allen", "seq":1}""") should be("1")
-      s.receive("""{"name":"jason"}""") should be("2")
+      s.receive("""{"name":"allen", "seq":1}""") should be(Some("1"))
+      s.receive("""{"name":"jason"}""") should be(Some("2"))
     }
 
     it("should complain invalid path") {
@@ -37,13 +37,13 @@ class StubSpec extends FunSpec with ShouldMatchers {
     it("should get array element") {
       new Stub {
         ($".[0]" =~ 1) >> json"2"
-      } receive "[1]" should be("2")
+      } receive "[1]" should be(Some("2"))
     }
 
     it("should support regex") {
       new Stub {
         ($".name" =* """\w+""") >> json"""{"name":"${$".name"}"}"""
-      } receive """{"name":"allen"}""" should be("""{"name":"allen"}""")
+      } receive """{"name":"allen"}""" should be(Some("""{"name":"allen"}"""))
     }
 
     it("should support composed filters") {
@@ -51,14 +51,20 @@ class StubSpec extends FunSpec with ShouldMatchers {
         ($".name" =~ "allen" || $".age" > 25) >> json"ok"
       }
 
-      s.receive("""{"name":"allen"}""") should be("ok")
-      s.receive("""{"age":30}""") should be("ok")
+      s.receive("""{"name":"allen"}""") should be(Some("ok"))
+      s.receive("""{"age":30}""") should be(Some("ok"))
     }
 
     it("should echo input") {
       new Stub {
-        (() => true) >> in
-      } receive "hi" should be("hi")
+        (() => true) >> $
+      } receive "hi" should be(Some("hi"))
+    }
+
+    it("should do nothing") {
+      new Stub {
+        (() => true) >> nil
+      } receive "hi" should be(None)
     }
   }
 }

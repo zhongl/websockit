@@ -73,14 +73,16 @@ class Session(val c: ChannelHandlerContext,
     case f: PingWebSocketFrame  => c.writeAndFlush(new PongWebSocketFrame(f.content().retain()))
     case f: CloseWebSocketFrame => h.close(c.channel(), f.retain())
     case f: PongWebSocketFrame  =>
-    case f: TextWebSocketFrame  => c.writeAndFlush(new TextWebSocketFrame(handle(f.retain().text())))
+    case f: TextWebSocketFrame  => handle(f.retain().text()) foreach { o => c.writeAndFlush(new TextWebSocketFrame(o)) }
   }
 
   private def handle(in: String) = {
     Console.info(s">>>\n$in")
-    val out = stub.receive(in)
-    Console.info(s"<<<\n$out")
-    out
+    stub.receive(in) map {
+      out => Console.info(s"<<<\n$out"); out
+    } orElse {
+      Console.info(s"<<<\nnil"); None
+    }
   }
 }
 
@@ -91,6 +93,7 @@ object Session {
     s"""// Press Cmd+Enter to update mock rules.
       |
       |// ($d".to" =~ "allen" ) >> json$tq{"code":200, "seq":$d{ $d".seq" }}$tq
+      |// ($d".to" =~ "jason" ) >> nil
     """.stripMargin
   }
 

@@ -5,9 +5,16 @@ import com.jayway.jsonpath
 
 class Stub {
 
+  type Filter = () => Boolean
+  type Receive = PartialFunction[String, Option[String]]
+
   @volatile protected var in = ""
 
-  @volatile var receive: PartialFunction[String, String] = { case s => s }
+  @volatile var receive: Receive = { case s => Some(s) }
+
+  protected val nil: Option[String] = None
+
+  protected def $ = Some(in)
 
   implicit class JsonPathRead(sc: StringContext) extends AnyRef {
     def $[T](args: Any*) = () => {
@@ -22,13 +29,11 @@ class Stub {
   }
 
   implicit class JsonStringHelper(sc: StringContext) extends AnyRef {
-    def json(args: Any*) = sc.s(args.collect {
+    def json(args: Any*) = Some(sc.s(args.collect {
       case f: Function0[_] => f()
       case x               => x
-    }: _*)
+    }: _*))
   }
-
-  type Filter = () => Boolean
 
   implicit class Read(f: () => _) {
 
@@ -54,8 +59,8 @@ class Stub {
 
     def &&(h: Filter) = () => f() && h()
 
-    def >>(s: => String) = {
-      val f: PartialFunction[String, String] = { case o @ Extract() => s }
+    def >>(s: => Option[String]) = {
+      val f: PartialFunction[String, Option[String]] = { case o @ Extract() => s }
       receive = f orElse receive
     }
 
