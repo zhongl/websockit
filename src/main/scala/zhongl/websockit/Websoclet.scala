@@ -90,7 +90,7 @@ object Session {
   private val defaultContent = {
     val tq = "\"\"\""
     val d = "$"
-    s"""// Press Cmd+Enter to update mock rules.
+    s"""// Press Cmd|Ctrl + Enter to update.
       |
       |// ($d".to" =~ "allen" ) >> json$tq{"code":200, "seq":$d{ $d".seq" }}$tq
     """.stripMargin

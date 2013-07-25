@@ -82,6 +82,15 @@
 
     function error(text) { log("ERROR : " + text); }
 
+    function keyCmdEnter(object, fun) {
+      if(navigator.platform.indexOf("Mac") != -1) {
+        object["Cmd-Enter"] = fun;
+      } else {
+        object["Ctrl-Enter"] = fun;
+      }
+      return object;
+    }
+
 
     stub = CodeMirror.fromTextArea($("#stub")[0], {
       lineNumbers      : true,
@@ -89,7 +98,7 @@
       theme            : "ambiance",
       autoCloseBrackets: true,
       matchBrackets    : true,
-      extraKeys        : {"Cmd-Enter": updateStub},
+      extraKeys        : keyCmdEnter({}, updateStub),
       readOnly         : true,
       mode             : "text/x-scala"
     });
@@ -99,13 +108,12 @@
       tabSize          : 2,
       autoCloseBrackets: true,
       matchBrackets    : true,
-      extraKeys        : {"Cmd-Enter": driveMessage},
+      extraKeys        : keyCmdEnter({}, driveMessage),
       theme            : "ambiance"
     });
 
     console = CodeMirror.fromTextArea($("#console")[0], {
       mode     : "text/x-sh",
-      extraKeys: {"Cmd-Delete": function (cm) {cm.setValue("");}},
       theme    : "ambiance"
     });
 

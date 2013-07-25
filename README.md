@@ -30,8 +30,8 @@
 - `ws://localhost:12306/websocket` should be the url for your application to connect.
 
 - use workbench page, click <http://localhost:12306>
-    - left-top panel can update mock rules, press `Cmd+Enter` to submit
-    - left-bottom panel can drive a message to your websocket client, press `Cmd+Enter` to submit
+    - left-top panel can update mock rules, press `Cmd|Ctrl + Enter` to submit
+    - left-bottom panel can drive a message to your websocket client, press `Cmd|Ctrl + Enter` to submit
     - right panel is a console, which could display all the operation logs.
 
 ![websockit-workbench](websockit.png)

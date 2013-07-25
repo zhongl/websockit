@@ -31,7 +31,7 @@
 
 <div class="column  pull-left">
   <input class="input-block-level" id="uri" value="ws://localhost:12306/websocket">
-  <textarea id="editor">// Cmd-Enter: send select text or all.
+  <textarea id="editor">// Cmd|Ctrl + Enter: send select text or all.
 {"to":"allen", "seq":1} </textarea>
 </div>
 <div class="column pull-right">
@@ -64,13 +64,22 @@
 
     function error(text) { log("ERROR : " + text); }
 
+    function keyCmdEnter(object, fun) {
+      if(navigator.platform.indexOf("Mac") != -1) {
+        object["Cmd-Enter"] = fun;
+      } else {
+        object["Ctrl-Enter"] = fun;
+      }
+      return object;
+    }
+
     editor = CodeMirror.fromTextArea($("#editor")[0], {
       lineNumbers      : true,
       tabSize          : 2,
       autoCloseBrackets: true,
       matchBrackets    : true,
       theme            : "ambiance",
-      extraKeys        : { "Cmd-Enter": send }
+      extraKeys        : keyCmdEnter({}, send)
     });
 
     console = CodeMirror.fromTextArea($("#console")[0], {
