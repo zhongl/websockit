@@ -31,8 +31,7 @@
 
 <div class="column  pull-left">
   <input class="input-block-level" id="uri" value="ws://localhost:12306/websocket">
-  <textarea id="editor">// Cmd|Ctrl + Enter: send select text or all.
-{"to":"allen", "seq":1} </textarea>
+  <textarea id="editor">{"to":"allen", "seq":1} </textarea>
 </div>
 <div class="column pull-right">
   <textarea id="console"></textarea>
@@ -65,7 +64,7 @@
     function error(text) { log("ERROR : " + text); }
 
     function keyCmdEnter(object, fun) {
-      if(navigator.platform.indexOf("Mac") != -1) {
+      if (navigator.platform.indexOf("Mac") != -1) {
         object["Cmd-Enter"] = fun;
       } else {
         object["Ctrl-Enter"] = fun;
@@ -83,15 +82,18 @@
     });
 
     console = CodeMirror.fromTextArea($("#console")[0], {
-      mode     : "text/x-sh",
-      theme    : "ambiance"
+      mode : "text/x-sh",
+      theme: "ambiance"
     });
 
     $("#uri").keydown(function (e) {
       if (e.which === 13) {
 
         ws = new WebSocket($("#uri").val())
-        ws.onclose = function () { info("Connection closed."); };
+        ws.onclose = function () {
+          info("Connection closed.");
+          $("#uri").attr("disabled", false);
+        };
         ws.onopen = function () { info("Connection opened.");};
         ws.onerror = function (e) { error("ws error: " + e.data);};
         ws.onmessage = function (e) { info("<<<\n" + e.data); };
