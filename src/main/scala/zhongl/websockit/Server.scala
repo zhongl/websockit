@@ -119,11 +119,12 @@ class Server(port: Int) {
       try {
         val f = new File(url.getFile)
         val raf = new RandomAccessFile(f, "r")
-        val r = new DefaultFullHttpResponse(HTTP_1_1, OK)
+        val r = new DefaultHttpResponse(HTTP_1_1, OK)
         setContentLength(r, raf.length())
         setContentType(r, f)
         c.write(r)
-        c.writeAndFlush(new DefaultFileRegion(raf.getChannel, 0, raf.length())).addListener(ChannelFutureListener.CLOSE)
+        c.write(new DefaultFileRegion(raf.getChannel, 0, raf.length()))
+        c.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE)
       } catch {
         case _: Throwable => response(failure(NOT_FOUND))
       }
