@@ -77,13 +77,15 @@
       tabSize          : 2,
       autoCloseBrackets: true,
       matchBrackets    : true,
+      lineWrapping     : true,
       theme            : "ambiance",
       extraKeys        : keyCmdEnter({}, send)
     });
 
     console = CodeMirror.fromTextArea($("#console")[0], {
-      mode : "text/x-sh",
-      theme: "ambiance"
+      mode        : "text/x-sh",
+      lineWrapping: true,
+      theme       : "ambiance"
     });
 
     $("#uri").keydown(function (e) {

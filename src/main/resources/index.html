@@ -98,6 +98,7 @@
       theme            : "ambiance",
       autoCloseBrackets: true,
       matchBrackets    : true,
+      lineWrapping     : true,
       extraKeys        : keyCmdEnter({}, updateStub),
       readOnly         : true,
       mode             : "text/x-scala"
@@ -108,13 +109,15 @@
       tabSize          : 2,
       autoCloseBrackets: true,
       matchBrackets    : true,
+      lineWrapping     : true,
       extraKeys        : keyCmdEnter({}, driveMessage),
       theme            : "ambiance"
     });
 
     console = CodeMirror.fromTextArea($("#console")[0], {
-      mode     : "text/x-sh",
-      theme    : "ambiance"
+      lineWrapping: true,
+      mode        : "text/x-sh",
+      theme       : "ambiance"
     });
 
     $.get("/stub", function (data) {
